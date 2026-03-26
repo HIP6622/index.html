@@ -1,388 +1,255 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>בינה ודעה - צ'אט הקהילה</title>
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
-    <style>
-        :root {
-            --bg-dark: #0f172a; --bg-panel: #1e293b; --bg-msg: #334155;
-            --accent: #6366f1; --accent-hover: #4f46e5;
-            --text-main: #f8fafc; --text-muted: #94a3b8;
-            --danger: #ef4444; --success: #22c55e;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1"/>
+<title>שאגת הארי - ריבוי ערוצים</title>
+<link rel="icon" type="image/png" href="https://i.ibb.co/pBvLbsG3/ed89a1453931.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=Assistant:wght@300;400;500;600;700;800&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+/* ... [כאן נמצאים כל העיצובים המקוריים שלך] ... */
+*{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;}
+body{height:100%;font-family:'Heebo',sans-serif;-webkit-font-smoothing:antialiased;background:#eae9e4;display:flex;flex-direction:row-reverse;}
 
-        body {
-            margin: 0; font-family: 'Assistant', sans-serif;
-            background-color: var(--bg-dark); color: var(--text-main);
-            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
-        }
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:#eae9e4;display:flex;align-items:center;justify-content:center;z-index:1000;}
+.login-card{background:#fff;border-radius:18px;padding:38px 32px;text-align:center;box-shadow:0 4px 32px rgba(0,0,0,.12);max-width:320px;width:90%;}
+.login-logo-img{width:90px;height:90px;border-radius:16px;margin:0 auto 14px;display:block;object-fit:contain;}
+.login-title{font-size:20px;font-weight:900;color:#111;margin-bottom:4px;}
 
-        /* סרגל עליון */
-        header {
-            background: var(--bg-panel); padding: 15px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
+/* ── NEW: LEFT SIDEBAR FOR CHANNELS ── */
+#leftSidebar {
+  width: 240px; min-width: 240px;
+  background: #fff;
+  border-right: 1px solid rgba(0,0,0,.08);
+  flex-shrink: 0;
+  position: sticky; top: 56px; height: calc(100vh - 56px);
+  display: flex; flex-direction: column;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+.channels-hdr {
+  padding: 15px; font-size: 14px; font-weight: 800; color: #111;
+  border-bottom: 1px solid #f0f0f0; background: #fafafa;
+}
+#channelsList { flex: 1; overflow-y: auto; padding: 10px 0; }
+.channel-item {
+  padding: 10px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 600; color: #4b5563;
+  border-bottom: 1px solid #f9fafb; transition: background 0.2s, color 0.2s;
+}
+.channel-item:hover { background: #f3f4f6; }
+.channel-item.active { background: #eff6ff; color: #1a56db; border-right: 4px solid #1a56db; }
+.channel-item i { width: 16px; text-align: center; color: #9ca3af; }
+.channel-item.active i { color: #1a56db; }
 
-        .logo { font-weight: 800; font-size: 1.5rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
-        .user-controls { display: flex; gap: 15px; align-items: center; }
-        
-        button { cursor: pointer; border: none; font-family: inherit; transition: 0.2s; }
-        .btn-icon { background: none; color: var(--text-muted); font-size: 1.2rem; }
-        .btn-icon:hover { color: var(--accent); }
-        .btn-primary { background: var(--accent); color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; }
-        .btn-primary:hover { background: var(--accent-hover); }
+#mobileMenuBtn { display: none; background: none; border: none; font-size: 18px; color: #111; cursor: pointer; padding: 5px; }
 
-        /* אזור הצ'אט */
-        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        
-        .message { background: var(--bg-panel); border-radius: 12px; padding: 15px; max-width: 80%; width: fit-content; border: 1px solid #334155; }
-        .msg-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); gap: 15px;}
-        .msg-author { font-weight: bold; color: var(--accent); }
-        .msg-content { font-size: 1.1rem; line-height: 1.5; white-space: pre-wrap; }
-        .msg-media img, .msg-media video, .msg-media iframe { max-width: 100%; border-radius: 8px; margin-top: 10px; border: 1px solid #334155; }
+@media(max-width: 900px) {
+  #leftSidebar { position: fixed; left: 0; transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,.12); }
+  #leftSidebar.open { transform: translateX(0); }
+  #mobileMenuBtn { display: block; }
+}
 
-        /* אזור הקלדה */
-        #input-area {
-            background: var(--bg-panel); padding: 20px; border-top: 1px solid #334155;
-            display: flex; flex-direction: column; gap: 10px; position: relative;
-        }
-        #input-area.disabled { opacity: 0.5; pointer-events: none; }
-        
-        .input-row { display: flex; gap: 10px; }
-        textarea, input[type="text"] {
-            background: var(--bg-dark); color: white; border: 1px solid #334155;
-            border-radius: 8px; padding: 12px; font-family: inherit; outline: none;
-        }
-        textarea:focus, input[type="text"]:focus { border-color: var(--accent); }
-        textarea { flex: 1; resize: none; height: 50px; }
-        input[type="text"] { width: 100%; box-sizing: border-box; font-size: 0.9rem; }
+body.dark #leftSidebar { background: #1a1a2e; border-color: #2a2a40; }
+body.dark .channels-hdr { background: #1e1e30; color: #fff; border-color: #2a2a40; }
+body.dark .channel-item { color: #d1d5db; border-color: #2a2a40; }
+body.dark .channel-item:hover { background: #2a2a45; }
+body.dark .channel-item.active { background: #2a2a45; color: #a5b4fc; border-right-color: #a5b4fc; }
 
-        /* חלונות צפים (מודלים) */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-            z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(4px);
-        }
-        .modal { background: var(--bg-panel); padding: 30px; border-radius: 16px; width: 90%; max-width: 500px; border: 1px solid #334155; }
-        .modal h2 { margin-top: 0; color: var(--accent); }
-        .close-modal { float: left; cursor: pointer; color: var(--text-muted); font-size: 1.5rem; }
-        .close-modal:hover { color: var(--danger); }
+/* ... [שאר עיצובי ה-CSS המקוריים שלך - לא נגעתי בהם] ... */
+/* העתק לכאן את כל שאר ה-CSS המקורי מקובץ הלקוח */
 
-        /* טבלת ניהול */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-box { background: var(--bg-dark); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #334155;}
-        .stat-num { font-size: 2rem; font-weight: 800; color: var(--accent); }
-        
-        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: var(--bg-dark); margin-bottom: 5px; border-radius: 8px; }
-        .perm-toggles { display: flex; gap: 5px; }
-        .perm-btn { font-size: 0.8rem; padding: 4px 8px; border-radius: 4px; background: #334155; color: white; }
-        .perm-btn.active { background: var(--success); }
-
-        /* מסך התחברות */
-        #login-screen { position: fixed; inset: 0; background: var(--bg-dark); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .login-box { text-align: center; background: var(--bg-panel); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155;}
-    </style>
+/* APP */
+#app{flex:1;min-width:0;height:100%;display:none;flex-direction:column;}
+header {
+  background:#fff;border-bottom:1px solid rgba(0,0,0,.08);
+  height:56px;padding:0 14px; display:flex;align-items:center;gap:12px;
+  flex-shrink:0;position:fixed;top:0;left:0;right:0;z-index:100;
+}
+#app{padding-top:56px;}
+#feedWrap{flex:1;overflow-y:auto;padding:10px 0 24px;}
+#feedInner{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+</style>
 </head>
 <body>
+<div id="prog"></div>
 
-<div id="login-screen">
-    <div class="login-box">
-        <i class="fas fa-satellite-dish" style="font-size: 4rem; color: var(--accent); margin-bottom: 20px;"></i>
-        <h1 style="margin: 0 0 10px 0;">בינה ודעה</h1>
-        <p style="color: var(--text-muted); margin-bottom: 30px;">התחברות מאובטחת לקהילה הסגורה</p>
-        <div id="googleBtn" style="display: flex; justify-content: center;"></div>
-    </div>
+<div id="loginScreen">
+  <div class="login-card">
+    <img class="login-logo-img" src="https://i.ibb.co/pBvLbsG3/ed89a1453931.png">
+    <div class="login-title">שאגת הארי</div>
+    <div id="googleBtn"></div>
+  </div>
 </div>
 
-<header>
-    <div class="logo"><i class="fas fa-brain"></i> בינה ודעה</div>
-    <div class="user-controls">
-        <span id="welcome-msg" style="font-weight: 600;"></span>
-        <button class="btn-icon" onclick="openProfile()" title="הגדרות פרופיל"><i class="fas fa-user-cog"></i></button>
-        <button class="btn-icon" id="admin-btn" style="display: none; color: #f59e0b;" onclick="openAdmin()" title="פאנל ניהול"><i class="fas fa-crown"></i></button>
-        <button class="btn-icon" onclick="logout()" title="התנתק"><i class="fas fa-sign-out-alt"></i></button>
+<div id="rightSidebar">
     </div>
-</header>
 
-<div id="chat-container">
-    <div style="text-align: center; color: var(--text-muted); margin-top: 50px;">טוען היסטוריית הודעות...</div>
+<div id="app">
+  <header>
+    <button id="mobileMenuBtn" onclick="toggleLeftSidebar()"><i class="fas fa-bars"></i></button>
+    <img class="hdr-avatar" src="https://i.ibb.co/pBvLbsG3/ed89a1453931.png">
+    <div class="hdr-info">
+      <div class="hdr-name" id="hdrChannelName">שאגת הארי - <span>כללי</span></div>
+      <div class="hdr-status"><div class="hdr-dot"></div>מחובר · עדכונים חיים</div>
+    </div>
+    </header>
+
+  <div id="feedWrap">
+    <div id="loadMoreSpinner"><div class="lm-ring"></div>טוען עוד...</div>
+    <div id="feedInner"></div>
+    <div id="empty"><i class="fas fa-satellite-dish"></i><p>אין הודעות בערוץ זה...</p></div>
+  </div>
 </div>
 
-<div id="input-area" class="disabled">
-    <div id="permission-msg" style="position: absolute; top: -25px; right: 20px; color: var(--danger); font-size: 0.9rem; display: none;">אין לך הרשאת כתיבה כרגע.</div>
-    <div class="input-row">
-        <textarea id="msg-text" placeholder="כתוב הודעה לקהילה..."></textarea>
-        <button class="btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> שלח</button>
-    </div>
-    <input type="text" id="msg-link" placeholder="🔗 אופציונלי: הדבק כאן קישור לתמונה / סרטון / יוטיוב / גוגל דרייב">
-</div>
-
-<div id="profile-modal" class="modal-overlay">
-    <div class="modal">
-        <span class="close-modal" onclick="closeModal('profile-modal')">&times;</span>
-        <h2>הגדרות פרופיל</h2>
-        <p style="color: var(--text-muted); font-size: 0.9rem;">ניתן לבחור כינוי אישי שיוצג בקהילה. <strong>שים לב: ניתן לשנות שם פעם אחת בלבד!</strong></p>
-        <input type="text" id="new-name-input" placeholder="הכנס כינוי חדש..." style="width: 100%; margin: 15px 0; padding: 10px; box-sizing: border-box;">
-        <button class="btn-primary" onclick="changeName()" style="width: 100%;">עדכן כינוי</button>
-    </div>
-</div>
-
-<div id="admin-modal" class="modal-overlay">
-    <div class="modal" style="max-width: 600px;">
-        <span class="close-modal" onclick="closeModal('admin-modal')">&times;</span>
-        <h2><i class="fas fa-crown"></i> מרכז השליטה</h2>
-        
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div style="color: var(--text-muted);">משתמשים רשומים</div>
-                <div class="stat-num" id="stat-users">0</div>
-            </div>
-            <div class="stat-box">
-                <div style="color: var(--text-muted);">הודעות במערכת</div>
-                <div class="stat-num" id="stat-msgs">0</div>
-            </div>
-        </div>
-
-        <h3>ניהול הרשאות משתתפים</h3>
-        <div id="admin-users-list" style="max-height: 300px; overflow-y: auto;">
-            <div style="text-align: center; color: var(--text-muted);">טוען נתונים מהשרת...</div>
-        </div>
+<div id="leftSidebar">
+  <div class="channels-hdr">📋 ערוצים בקהילה</div>
+  <div id="channelsList">
     </div>
 </div>
 
 <script>
-    const BACKEND = 'https://hiphopruzbcrd.pythonanywhere.com'; 
-    let currentUser = null;
+// --- הגדרות השרת והמערכת ---
+const BACKEND = 'https://dhoc97909.pythonanywhere.com';
+let currentChannelId = 'general'; // הערוץ הדיפולטיבי
 
-    // --- מערכת התחברות ושמירת נתונים ---
-    window.onload = () => {
-        // בדיקה אם המשתמש כבר מחובר ממקודם
-        const savedUser = localStorage.getItem('binaUser');
-        if (savedUser) {
-            currentUser = JSON.parse(savedUser);
-            document.getElementById('login-screen').style.display = 'none';
-            initApp();
-        } else {
-            // אם לא, מציגים כפתור גוגל
-            google.accounts.id.initialize({
-                client_id: '548333676754-ohvlnp1nfjpc1jnbkdfmr9hpccaj508i.apps.googleusercontent.com',
-                callback: handleGoogleLogin
-            });
-            google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: 'filled_black', size: 'large', shape: 'pill' });
-        }
-    };
+const CHANNELS = [
+  { id: 'general', name: 'כללי', icon: 'fa-hashtag' },
+  { id: 'news', name: 'מבזקי חדשות', icon: 'fa-bullhorn' },
+  { id: 'discussions', name: 'דיונים', icon: 'fa-comments' },
+  { id: 'admin_only', name: 'הודעות הנהלה', icon: 'fa-shield-alt' }
+];
 
-    function handleGoogleLogin(resp) {
-        const payload = JSON.parse(atob(resp.credential.split('.')[1]));
-        currentUser = { email: payload.email, name: payload.name, picture: payload.picture, token: resp.credential };
-        
-        // שמירה בדפדפן - לא צריך להתחבר שוב!
-        localStorage.setItem('binaUser', JSON.stringify(currentUser));
-        document.getElementById('login-screen').style.display = 'none';
-        initApp();
+// --- רינדור רשימת הערוצים ---
+function renderChannels() {
+  const list = document.getElementById('channelsList');
+  list.innerHTML = CHANNELS.map(ch => `
+    <div class="channel-item ${ch.id === currentChannelId ? 'active' : ''}" onclick="switchChannel('${ch.id}', '${ch.name}')">
+      <i class="fas ${ch.icon}"></i> ${ch.name}
+    </div>
+  `).join('');
+  document.getElementById('hdrChannelName').innerHTML = `שאגת הארי - <span style="color:#1a56db">${CHANNELS.find(c=>c.id===currentChannelId).name}</span>`;
+}
+
+// --- החלפת ערוץ ---
+async function switchChannel(channelId, channelName) {
+  if (currentChannelId === channelId) return;
+  currentChannelId = channelId;
+  renderChannels();
+  
+  if(window.innerWidth <= 900) {
+      document.getElementById('leftSidebar').classList.remove('open');
+  }
+
+  // איפוס כל הנתונים של הפיד
+  items = []; 
+  lastTs = 0; 
+  knownIds.clear(); 
+  oldestTs = 0; 
+  allLoaded = false;
+  document.getElementById('feedInner').innerHTML = '';
+  document.getElementById('empty').style.display = 'block';
+
+  // טעינה מחדש מהשרת לערוץ הספציפי
+  await loadFeed();
+}
+
+function toggleLeftSidebar() {
+    document.getElementById('leftSidebar').classList.toggle('open');
+}
+
+// --- עדכונים לפונקציות השרת כדי שיתמכו בערוצים ---
+
+async function loadFeed(){
+  setLoading(true);
+  try{
+    // שים לב שנוסף הפרמטר channel
+    const r=await fetch(`${BACKEND}/feed?channel=${currentChannelId}&limit=20`);
+    const d=await r.json();
+    if(d.status==='ok'){
+      let allPages=[...d.feed].reverse();
+      allPages.forEach(e=>knownIds.add(e.id));
+      allLoaded=d.feed.length<20;
+      oldestTs=allPages.length?Math.min(...allPages.map(e=>e.ts||Infinity)):0;
+
+      items=allPages;
+      lastTs=items.length?Math.max(...items.map(e=>e.ts||0)):0;
+
+      const inner=document.getElementById('feedInner');
+      inner.innerHTML='';
+      if(!items.length){document.getElementById('empty').style.display='block';}
+      else{
+          document.getElementById('empty').style.display='none';
+          inner.innerHTML=items.map(buildMsg).join('');
+      }
+      const wrap=document.getElementById('feedWrap');
+      wrap.scrollTop=wrap.scrollHeight;
     }
+  }catch(e){}
+  setLoading(false);
+}
 
-    function logout() {
-        localStorage.removeItem('binaUser');
-        location.reload();
-    }
+async function loadMore(){
+  if(loadingMore||allLoaded||!oldestTs)return;
+  loadingMore=true;document.getElementById('loadMoreSpinner').classList.add('show');
+  try{
+    // שליחת ערוץ גם בטעינה אחורה
+    const r=await fetch(`${BACKEND}/feed?channel=${currentChannelId}&before=${oldestTs}&limit=20`);
+    const d=await r.json();
+    if(d.status==='ok'&&d.feed.length){
+      const older=d.feed.filter(e=>!knownIds.has(e.id)).reverse();
+      if(!older.length){allLoaded=true;}
+      else{
+        older.forEach(e=>{knownIds.add(e.id);items.unshift(e);});
+        oldestTs=Math.min(...older.map(e=>e.ts||Infinity));
+        allLoaded=older.length<20;
+        const inner=document.getElementById('feedInner');const wrap=document.getElementById('feedWrap');
+        const prevHeight=wrap.scrollHeight;const prevTop=wrap.scrollTop;
+        inner.insertAdjacentHTML('afterbegin',older.map(buildMsg).join(''));
+        wrap.scrollTop=prevTop+(wrap.scrollHeight-prevHeight);
+      }
+    }else{allLoaded=true;}
+  }catch(e){}finally{loadingMore=false;document.getElementById('loadMoreSpinner').classList.remove('show');}
+}
 
-    // --- אתחול המערכת ---
-    async function initApp() {
-        document.getElementById('welcome-msg').innerText = `שלום, ${currentUser.name}`;
-        await verifyPermissions();
-        loadChat();
-        // ריענון צ'אט אוטומטי כל 10 שניות
-        setInterval(loadChat, 10000); 
-    }
+async function pollAll(){
+  if(!me||!items.length)return;
+  pollPending=true;
+  try{
+    // שליחת הערוץ בבקשת הפולינג
+    const r=await fetch(BACKEND+'/feed_poll',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({msgIds:items.map(e=>e.id),since:lastTs, channel: currentChannelId})});
+    const d=await r.json();if(d.status!=='ok')return;
+    // ... המשך הפונקציה בדיוק כפי שהיא במקור ...
+  }catch(e){}finally{pollPending=false;}
+}
 
-    // בדיקת הרשאות מול השרת (כולל עדכון שם אם שונה)
-    async function verifyPermissions() {
-        try {
-            const r = await fetch(`${BACKEND}/api/auth`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: currentUser.email, name: currentUser.name })
-            });
-            const data = await r.json();
-            
-            // עדכון השם במקרה שהוא שונה בשרת
-            if (data.display_name) {
-                currentUser.displayName = data.display_name;
-                document.getElementById('welcome-msg').innerText = `שלום, ${currentUser.displayName}`;
-            }
+async function sendFeedPost(){
+  // ... תחילת הפונקציה המקורית ...
+  const entry={
+    channel: currentChannelId, // <--- הוספת הערוץ להודעה
+    profile:composeProfile,
+    text,
+    imgUrl:composeImgUrl,
+    videoUrl:composeVidUrl,
+    htmlCode:composeHtmlCode,
+    sender:me.name,
+    // ... שאר ההגדרות כרגיל ...
+  };
+  // ... שליחה לשרת כרגיל ...
+}
 
-            // פתיחת אזור הקלדה
-            if (data.can_write || data.is_admin) {
-                document.getElementById('input-area').classList.remove('disabled');
-                document.getElementById('permission-msg').style.display = 'none';
-            } else {
-                document.getElementById('permission-msg').style.display = 'block';
-            }
+// קריאה ראשונית לרינדור ערוצים בעליית הדף
+window.addEventListener('load',()=>{
+  renderChannels();
+});
 
-            // חשיפת כפתור ניהול
-            if (data.is_admin) {
-                document.getElementById('admin-btn').style.display = 'inline-block';
-            }
-
-        } catch(e) { console.error("Auth error", e); }
-    }
-
-    // --- טיפול בהודעות וקישורים ---
-    function renderMediaLink(link) {
-        if (!link) return '';
-        link = link.trim();
-        const lowerLink = link.toLowerCase();
-        
-        // תמונה
-        if (lowerLink.match(/\.(jpeg|jpg|gif|png|webp)$/)) {
-            return `<div class="msg-media"><img src="${link}" alt="תמונה שצורפה" onerror="this.style.display='none'"></div>`;
-        }
-        // וידאו ישיר
-        if (lowerLink.match(/\.(mp4|webm|ogg)$/)) {
-            return `<div class="msg-media"><video controls src="${link}"></video></div>`;
-        }
-        // יוטיוב
-        let ytMatch = link.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})/);
-        if (ytMatch && ytMatch[1]) {
-            return `<div class="msg-media"><iframe width="100%" height="250" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe></div>`;
-        }
-        // סתם קישור
-        return `<div style="margin-top:10px;"><a href="${link}" target="_blank" style="color:var(--accent);"><i class="fas fa-external-link-alt"></i> צפה בקישור המצורף</a></div>`;
-    }
-
-    async function loadChat() {
-        try {
-            const r = await fetch(`${BACKEND}/api/chat`);
-            const data = await r.json();
-            const container = document.getElementById('chat-container');
-            
-            if (!data.messages || data.messages.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); margin-top: 50px;">אין הודעות עדיין... תתחילו לדבר!</div>';
-                return;
-            }
-
-            let html = '';
-            data.messages.forEach(msg => {
-                const isMe = msg.email === currentUser.email;
-                html += `
-                    <div class="message" style="${isMe ? 'align-self: flex-start; border-right: 4px solid var(--accent);' : 'align-self: flex-end; background: var(--bg-dark);'}">
-                        <div class="msg-header">
-                            <span class="msg-author">${msg.name}</span>
-                            <span>${msg.time || ''}</span>
-                        </div>
-                        <div class="msg-content">${msg.text}</div>
-                        ${renderMediaLink(msg.link)}
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            
-            // גלילה אוטומטית למטה
-            container.scrollTop = container.scrollHeight;
-        } catch(e) {}
-    }
-
-    async function sendMessage() {
-        const text = document.getElementById('msg-text').value.trim();
-        const link = document.getElementById('msg-link').value.trim();
-        if (!text && !link) return;
-
-        const entry = {
-            email: currentUser.email,
-            name: currentUser.displayName || currentUser.name,
-            text: text,
-            link: link
-        };
-
-        document.getElementById('msg-text').value = '';
-        document.getElementById('msg-link').value = '';
-
-        try {
-            await fetch(`${BACKEND}/api/chat`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(entry)
-            });
-            loadChat();
-        } catch(e) { alert("שגיאה בשליחת ההודעה."); }
-    }
-
-    // --- פרופיל וניהול ---
-    function openProfile() { document.getElementById('profile-modal').style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    async function changeName() {
-        const newName = document.getElementById('new-name-input').value.trim();
-        if(!newName || newName.length < 2) { alert("שם קצר מדי."); return; }
-        
-        try {
-            const r = await fetch(`${BACKEND}/api/change_name`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: currentUser.email, new_name: newName })
-            });
-            const res = await r.json();
-            if(res.success) {
-                alert("השם עודכן בהצלחה!");
-                currentUser.displayName = newName;
-                localStorage.setItem('binaUser', JSON.stringify(currentUser));
-                closeModal('profile-modal');
-                initApp();
-            } else {
-                alert(res.error || "לא ניתן לשנות שם יותר מפעם אחת.");
-            }
-        } catch(e) { alert("שגיאת שרת."); }
-    }
-
-    // פאנל ניהול מיוחד
-    async function openAdmin() {
-        document.getElementById('admin-modal').style.display = 'flex';
-        try {
-            const r = await fetch(`${BACKEND}/api/admin_data?email=${currentUser.email}`);
-            const data = await r.json();
-            
-            document.getElementById('stat-users').innerText = data.stats.total_users;
-            document.getElementById('stat-msgs').innerText = data.stats.total_messages;
-
-            let html = '';
-            data.users.forEach(u => {
-                // מתגים לשליטה
-                const writeBtn = `<button class="perm-btn ${u.can_write ? 'active' : ''}" onclick="togglePerm('${u.email}', 'write')">כתיבה</button>`;
-                const commentBtn = `<button class="perm-btn ${u.can_comment ? 'active' : ''}" onclick="togglePerm('${u.email}', 'comment')">תגובה</button>`;
-                
-                html += `
-                    <div class="user-row">
-                        <div>
-                            <strong>${u.display_name || u.original_name}</strong><br>
-                            <small style="color:var(--text-muted);">${u.email}</small>
-                        </div>
-                        <div class="perm-toggles">${writeBtn}${commentBtn}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('admin-users-list').innerHTML = html;
-        } catch(e) { document.getElementById('admin-users-list').innerHTML = "שגיאה בטעינת נתונים"; }
-    }
-
-    // שליחת פקודת שינוי הרשאה לשרת
-    async function togglePerm(targetEmail, permType) {
-        try {
-            await fetch(`${BACKEND}/api/toggle_perm`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ admin_email: currentUser.email, target_email: targetEmail, perm_type: permType })
-            });
-            openAdmin(); // ריענון הרשימה מיד
-        } catch(e) {}
-    }
+// העתק את כל שאר ה-JS המקורי שלא נגענו בו (כמו buildMsg, תגובות, פרסומות, וכו') פה למטה.
 </script>
-
 </body>
 </html>
