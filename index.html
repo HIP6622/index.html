@@ -4,123 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>בינה ודעה - גרסת האתר</title>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;500;800&family=Assistant:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;500;800&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
         :root {
-            --dream-gradient: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --accent-color: #6c5ce7;
+            /* צבעים כהים חדשים */
+            --bg-deep-black: #0a0e17;
+            --bg-dark-gray: #161d2b;
+            --glass-dark: rgba(22, 29, 43, 0.8);
+            
+            /* צבעי הדגשה חלומיים */
+            --accent-purple: #a78bfa;
+            --accent-blue: #8ec5fc;
+            --text-main: #f3f4f6;
+            --text-sub: #9ca3af;
+            
+            --subtle-border: rgba(255, 255, 255, 0.06);
         }
 
         body {
             margin: 0;
             font-family: 'Assistant', sans-serif;
-            background: var(--dream-gradient);
+            background-color: var(--bg-deep-black);
+            /* רקע עדין מאוד של גרדיאנט כהה */
+            background-image: linear-gradient(135deg, #0a0e17 0%, #111827 100%);
             background-attachment: fixed;
             min-height: 100vh;
-            color: #2d3436;
+            color: var(--text-main);
+            padding-bottom: 100px; /* רווח עבור הסרגל הצף */
+            overflow-x: hidden;
         }
 
-        /* כותרת עליונה חלומית */
-        header {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
+        /* --- הנפשת נקודות (Avatar Fallback) --- */
+        @keyframes driftDots {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; }
+        }
+
+        .dots-avatar-placeholder {
+            width: 100%;
+            height: 100%;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-family: 'Heebo', sans-serif;
+            justify-content: center;
             font-weight: 800;
-            font-size: 1.8rem;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            
+            /* הגדרות האנימציה */
+            background-color: #111;
+            background-image: 
+                radial-gradient(var(--accent-purple) 1px, transparent 1px),
+                radial-gradient(var(--accent-blue) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            animation: driftDots 4s linear infinite;
         }
-
-        /* סרגל ניהול למנהלים בלבד */
-        #admin-panel {
-            background: #2d3436;
-            color: white;
-            padding: 10px;
-            text-align: center;
-            border-radius: 0 0 15px 15px;
-            margin-bottom: 20px;
-            display: none; /* מוסתר כברירת מחדל */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        #admin-panel button {
-            cursor: pointer;
-            margin: 0 5px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid #555;
-            background: #444;
-            color: white;
-            transition: 0.3s;
-        }
-
-        #admin-panel button:hover { background: var(--accent-color); border-color: var(--accent-color); }
+        /* --- סוף הנפשת נקודות --- */
 
         /* מבנה הפורום */
         #main-container {
-            max-width: 800px;
+            max-width: 700px;
             margin: 2rem auto;
             padding: 0 1rem;
         }
 
         /* כרטיס פוסט (הפינה של המשתמש) */
         .post-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(5px);
+            background: var(--glass-dark);
+            backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: transform 0.3s ease;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid var(--subtle-border);
+            transition: transform 0.3s ease, border-color 0.3s;
             animation: fadeIn 0.5s ease forwards;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .post-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
+            border-color: rgba(167, 139, 250, 0.3);
         }
 
         .user-corner-info {
             display: flex;
             align-items: center;
             margin-bottom: 1rem;
-            border-bottom: 1px dashed #ddd;
-            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--subtle-border);
+            padding-bottom: 1rem;
         }
 
         .user-avatar {
-            width: 45px;
-            height: 45px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: var(--accent-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
             margin-left: 1rem;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             overflow: hidden;
+            border: 2px solid var(--subtle-border);
         }
 
         .user-avatar img {
@@ -130,25 +119,26 @@
         }
 
         .post-content {
-            font-size: 1.15rem;
-            line-height: 1.7;
+            font-size: 1.1rem;
+            line-height: 1.8;
             white-space: pre-wrap;
-            color: #444;
+            color: var(--text-main);
         }
 
-        /* תיבת כתיבה למורשים */
+        /* תיבת כתיבה */
         #admin-editor {
-            background: white;
+            background: var(--bg-dark-gray);
             border-radius: 20px;
             padding: 1.5rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            border: 1px solid var(--subtle-border);
             display: none; 
         }
 
         textarea {
             width: 100%;
-            border: 1px solid #eee;
+            border: 1px solid var(--subtle-border);
             border-radius: 12px;
             padding: 1rem;
             font-family: inherit;
@@ -156,36 +146,99 @@
             margin-bottom: 1rem;
             font-size: 1rem;
             outline: none;
-            transition: border-color 0.3s;
+            transition: 0.3s;
+            background: rgba(0,0,0,0.2);
+            color: white;
             box-sizing: border-box;
         }
 
         textarea:focus {
-            border-color: var(--accent-color);
+            border-color: var(--accent-purple);
+            background: rgba(0,0,0,0.3);
         }
 
         .btn-send {
-            background: var(--accent-color);
+            background: linear-gradient(135deg, var(--accent-purple) 0%, #8b5cf6 100%);
             color: white;
             border: none;
             padding: 0.8rem 2.5rem;
             border-radius: 50px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 1rem;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
         }
 
         .btn-send:hover {
-            opacity: 0.9;
-            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5);
         }
 
-        /* מסך כניסה */
+        /* --- סרגל צף חדש וחמוד --- */
+        #floating-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-dark);
+            backdrop-filter: blur(15px);
+            padding: 10px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid var(--subtle-border);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 500;
+            color: white;
+            transition: 0.3s;
+        }
+
+        #floating-nav a, #floating-nav button.nav-item {
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 1.4rem;
+            transition: 0.3s;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        #floating-nav a:hover, #floating-nav button.nav-item:hover, #floating-nav a.active {
+            color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        #floating-nav .nav-logo {
+            font-family: 'Heebo', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: white;
+            margin-right: 10px;
+        }
+        
+        #floating-nav .divider {
+            width: 1px;
+            height: 25px;
+            background: var(--subtle-border);
+        }
+
+        #floating-nav .user-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        /* --- מסך כניסה שחור --- */
         #login-overlay {
             position: fixed;
             inset: 0;
-            background: var(--dream-gradient);
+            background-color: var(--bg-deep-black);
+            background-image: linear-gradient(135deg, #0a0e17 0%, #111827 100%);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -193,85 +246,102 @@
         }
 
         .login-box {
-            background: white;
+            background: var(--bg-dark-gray);
             padding: 3rem;
             border-radius: 30px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
             max-width: 400px;
             width: 90%;
+            border: 1px solid var(--subtle-border);
         }
 
-        .login-box h1 { margin: 0.5rem 0; color: var(--accent-color); }
-        
-        /* חלונות קופצים (מודלים) למנהל */
+        .login-box h1 { margin: 0.5rem 0; color: var(--accent-blue); font-family: 'Heebo', sans-serif; font-weight: 800; }
+        .login-box p { color: var(--text-sub); margin-bottom: 2rem; }
+
+        /* חלונות קופצים (מודלים) */
         .admin-modal {
             display: none; 
             position: fixed; 
             inset: 0; 
-            background: rgba(0,0,0,0.8); 
+            background: rgba(0,0,0,0.85); 
             z-index: 2000; 
             align-items: center; 
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
         .modal-content {
-            background: white; 
+            background: var(--bg-dark-gray); 
             padding: 2rem; 
-            border-radius: 15px; 
+            border-radius: 20px; 
             width: 90%; 
             max-width: 500px; 
             max-height: 80vh; 
             overflow-y: auto;
+            border: 1px solid var(--subtle-border);
+            color: var(--text-main);
         }
         .close-modal {
             float: left; 
             cursor: pointer; 
             font-size: 1.5rem; 
-            color: #aaa;
+            color: var(--text-sub);
         }
-        .close-modal:hover { color: red; }
+        .close-modal:hover { color: #ef4444; }
+        
+        #users-list ul { list-style: none; padding: 0; }
+        #users-list li {
+            background: rgba(255,255,255,0.03);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid var(--subtle-border);
+        }
     </style>
 </head>
 <body>
 
 <div id="login-overlay">
     <div class="login-box">
-        <i class="fas fa-cloud-sun" style="font-size: 3rem; color: #8ec5fc; margin-bottom: 1rem;"></i>
+        <i class="fas fa-brain" style="font-size: 3.5rem; color: var(--accent-purple); margin-bottom: 1.5rem;"></i>
         <h2>ברוכים הבאים</h2>
         <h1>בינה ודעה</h1>
-        <p style="color: #888;">התחברו כדי לצפות בפינות האישיות ולהשתתף בפורום</p>
-        <div id="googleBtn" style="display: flex; justify-content: center; margin-top: 2rem;"></div>
+        <p>התחברו כדי לצפות בפינות האישיות ולהשתתף בפורום</p>
+        <div id="googleBtn" style="display: flex; justify-content: center;"></div>
     </div>
 </div>
 
-<header>
-    <div class="logo">בינה ודעה ✨</div>
-    <div id="user-info" style="color: white; font-weight: bold; display: flex; align-items: center; gap: 10px;"></div>
-</header>
-
-<div id="admin-panel">
-    <strong style="margin-left: 15px;">🛠️ מנהל מערכת:</strong>
-    <button onclick="viewUsers()"><i class="fas fa-users"></i> משתתפים</button>
-    <button onclick="openAdminChat()"><i class="fas fa-comments"></i> צ'אט מנהלים</button>
+<div id="floating-nav">
+    <div class="nav-logo">בינה ודעה ✨</div>
+    <div class="divider"></div>
+    
+    <a href="#" class="active" title="פיד ראשי"><i class="fas fa-home"></i></a>
+    <button class="nav-item" onclick="toggleEditor()" title="כתיבת פוסט חדש"><i class="fas fa-feather-alt"></i></button>
+    <a href="#" title="צ'אט (בקרוב)"><i class="fas fa-comments"></i></a>
+    
+    <div class="divider"></div>
+    
+    <div id="user-status-area" class="user-status">
+        </div>
 </div>
 
 <div id="main-container">
     <div id="admin-editor">
-        <h3 style="margin-top: 0;"><i class="fas fa-feather-alt"></i> כתבו בפינה שלכם</h3>
-        <textarea id="post-text" rows="4" placeholder="שתפו את המחשבות שלכם עם הקהילה..."></textarea>
+        <h3 style="margin-top: 0; color: var(--accent-purple);"><i class="fas fa-pen-fancy"></i> כתבו בפינה שלכם</h3>
+        <textarea id="post-text" rows="5" placeholder="שתפו את המחשבות שלכם עם הקהילה..."></textarea>
         <button class="btn-send" onclick="sendPost()">פרסם בפורום ✨</button>
     </div>
 
     <div id="forum-feed">
-        <div style="text-align: center; color: white; padding: 2rem;">טוען את הפינות המיוחדות...</div>
+        <div style="text-align: center; color: var(--text-sub); padding: 3rem;">טוען את הפינות המיוחדות...</div>
     </div>
 </div>
 
 <div id="users-modal" class="admin-modal">
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal('users-modal')">&times;</span>
-        <h2>משתתפים רשומים</h2>
-        <div id="users-list" style="text-align: right; line-height: 1.8;"></div>
+        <h2 style="color: var(--accent-blue);">משתתפים רשומים</h2>
+        <div id="users-list" style="text-align: right;"></div>
     </div>
 </div>
 
@@ -280,6 +350,19 @@
     const BACKEND = 'https://hiphopruzbcrd.pythonanywhere.com'; 
     let currentUser = null;
 
+    // פונקציית עזר ליצירת אווטאר עם הנפשת נקודות אם אין תמונה
+    function createAvatarHtml(picture, name, isSmall = false) {
+        const size = isSmall ? '32px' : '48px';
+        const fontSize = isSmall ? '0.9rem' : '1.2rem';
+        
+        if (picture && picture.trim() !== "") {
+            return `<img src="${picture}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        } else {
+            // אם אין תמונה, מחזירים את האנימציה המגניבה עם האות הראשונה
+            return `<div class="dots-avatar-placeholder" style="font-size: ${fontSize};">${name ? name[0] : '?'}</div>`;
+        }
+    }
+
     // טעינת פוסטים מהשרת
     async function loadPosts() {
         try {
@@ -287,8 +370,8 @@
             const data = await r.json();
             const feed = document.getElementById('forum-feed');
             
-            if (data.feed.length === 0) {
-                feed.innerHTML = '<div style="text-align: center; color: white;">עדיין אין פוסטים בפורום. היו הראשונים לכתוב!</div>';
+            if (!data.feed || data.feed.length === 0) {
+                feed.innerHTML = '<div style="text-align: center; color: var(--text-sub); padding: 2rem;">עדיין אין פוסטים בפורום.</div>';
                 return;
             }
 
@@ -297,16 +380,15 @@
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 
-                const charCode = post.sender.charCodeAt(0);
-                const colors = ['#6c5ce7', '#fab1a0', '#00cec9', '#0984e3', '#e84393'];
-                const userColor = colors[charCode % colors.length];
+                // משתמשים בפונקציה החדשה ליצירת האווטאר
+                const avatarHtml = createAvatarHtml(post.picture, post.sender);
 
                 card.innerHTML = `
                     <div class="user-corner-info">
-                        <div class="user-avatar" style="background: ${userColor}">${post.sender[0]}</div>
+                        <div class="user-avatar">${avatarHtml}</div>
                         <div>
-                            <strong style="font-size: 1.1rem;">${post.sender}</strong><br>
-                            <small style="color: #aaa;">${post.time || ''} • ${post.date || ''}</small>
+                            <strong style="font-size: 1.1rem; color: white;">${post.sender}</strong><br>
+                            <small style="color: var(--text-sub);">${post.time || ''} • ${post.date || ''}</small>
                         </div>
                     </div>
                     <div class="post-content">${post.text}</div>
@@ -315,6 +397,7 @@
             });
         } catch (e) { 
             console.error("שגיאה בטעינת פוסטים", e); 
+            document.getElementById('forum-feed').innerHTML = '<div style="text-align: center; color: #ef4444;">שגיאה בטעינת הנתונים מהשרת.</div>';
         }
     }
 
@@ -330,6 +413,7 @@
         const entry = {
             senderEmail: currentUser.email,
             sender: currentUser.name,
+            picture: currentUser.picture, // שולחים גם את תמונת הפרופיל
             text: text,
             profile: 'news',
             ts: Date.now()
@@ -344,9 +428,10 @@
 
             if(r.ok) {
                 document.getElementById('post-text').value = '';
+                document.getElementById('admin-editor').style.display = 'none'; // סגירת התיבה אחרי שליחה
                 await loadPosts();
             } else {
-                alert("אין לך הרשאת כתיבה כרגע. פנה למנהל הראשי לאישור.");
+                alert("אין לך הרשאת כתיבה כרגע.");
             }
         } catch(e) {
             alert("שגיאת תקשורת עם השרת.");
@@ -356,25 +441,41 @@
         }
     }
 
+    // פתיחה/סגירה של תיבת הכתיבה
+    function toggleEditor() {
+        const editor = document.getElementById('admin-editor');
+        if (editor.style.display === 'block') {
+            editor.style.display = 'none';
+        } else {
+            // בודקים אם יש הרשאה לפני שפותחים (ליתר ביטחון)
+            if (editor.dataset.allowed === 'true') {
+                editor.style.display = 'block';
+                document.getElementById('post-text').focus();
+            } else {
+                alert("אין לך הרשאת כתיבה במערכת זו.");
+            }
+        }
+    }
+
     // טיפול בכניסה עם גוגל
     function handleLogin(resp) {
-        // מפענח את האסימון של גוגל למציאת שם ומייל
         const payload = JSON.parse(atob(resp.credential.split('.')[1]));
         currentUser = {
             email: payload.email,
             name: payload.name,
             picture: payload.picture,
-            token: resp.credential // שומרים את האסימון לאימות מול השרת
+            token: resp.credential
         };
         
         document.getElementById('login-overlay').style.display = 'none';
         
-        const userInfo = document.getElementById('user-info');
-        userInfo.innerHTML = `
-            <span>שלום, ${currentUser.name}</span>
-            <div class="user-avatar" style="width: 32px; height: 32px; margin: 0;">
-                <img src="${currentUser.picture}" alt="תמונת פרופיל">
-            </div>
+        // עדכון הסרגל הצף עם פרטי המשתמש
+        const statusArea = document.getElementById('user-status-area');
+        const avatarHtml = createAvatarHtml(currentUser.picture, currentUser.name, true); // אווטאר קטן לסרגל
+
+        statusArea.innerHTML = `
+            <div class="user-avatar" style="width: 32px; height: 32px; margin: 0; border-color: var(--accent-blue);">${avatarHtml}</div>
+            <div id="admin-actions" style="display: flex; gap: 10px;"></div>
         `;
         
         checkPermissions(currentUser);
@@ -384,7 +485,6 @@
     // בדיקת הרשאות מול השרת
     async function checkPermissions(user) {
         try {
-            // שולחים את המייל והאסימון לשרת לבדיקה
             const r = await fetch(`${BACKEND}/check_permissions`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -392,52 +492,59 @@
             });
             const data = await r.json();
             
-            // אם השרת מאשר שזה מנהל (is_admin מוגדר בקוד שלך בשרת)
+            const adminActions = document.getElementById('admin-actions');
+            const editorDiv = document.getElementById('admin-editor');
+
             if(data.is_admin || data.allowed) {
-                document.getElementById('admin-panel').style.display = 'block'; // חשיפת סרגל המנהל
-                document.getElementById('admin-editor').style.display = 'block'; // חשיפת תיבת הכתיבה
+                // אם מנהל - מוסיפים כפתור ניהול לסרגל הצף
+                adminActions.innerHTML = `
+                    <button class="nav-item" onclick="viewUsers()" title="ניהול משתמשים" style="color: var(--accent-blue);">
+                        <i class="fas fa-user-shield"></i>
+                    </button>
+                `;
+                editorDiv.dataset.allowed = 'true'; // סימון שיש הרשאה
             } else if (data.can_write) {
-                // אם רק מותר לו לכתוב אבל לא לנהל
-                document.getElementById('admin-editor').style.display = 'block';
+                // אם רק מורשה כתיבה
+                editorDiv.dataset.allowed = 'true';
             }
         } catch(e) { console.error("שגיאה בבדיקת הרשאות:", e); }
     }
 
     // --- פונקציות ניהול ---
 
-    // צפייה במשתמשים
     async function viewUsers() {
         try {
+            document.getElementById('users-list').innerHTML = '<div style="text-align:center; color:var(--text-sub);">טוען...</div>';
+            document.getElementById('users-modal').style.display = 'flex';
+
             const r = await fetch(`${BACKEND}/get_users`);
             const data = await r.json();
             
             let html = '<ul>';
             if(data.users && data.users.length > 0) {
                 data.users.forEach(u => {
-                    html += `<li><strong>${u.name || 'משתמש'}</strong> - ${u.email}</li>`;
+                    html += `<li><i class="fas fa-user" style="color:var(--text-sub); margin-left:8px;"></i> <strong>${u.name || 'משתמש'}</strong> - ${u.email}</li>`;
                 });
             } else {
-                html += '<li>אין משתמשים רשומים כרגע, או שהקובץ ריק.</li>';
+                html += '<li>אין משתמשים רשומים כרגע.</li>';
             }
             html += '</ul>';
             
             document.getElementById('users-list').innerHTML = html;
-            document.getElementById('users-modal').style.display = 'flex';
         } catch(e) {
             alert("שגיאה במשיכת נתוני משתמשים.");
         }
     }
 
-    // פתיחת צ'אט מנהלים (מפנה לנתיב נפרד אם קיים, או פותח פופ-אפ)
-    function openAdminChat() {
-        // מכיוון שיש לך נתיבים רבים בשרת, זו דוגמה בסיסית לפתיחת חלון הצ'אט
-        alert("כאן ייפתח צ'אט המנהלים הסודי. נוכל לבנות עבורו מודל מעוצב בהמשך!");
-        // אפשר גם: window.open(`${BACKEND}/admin_chat_page`, '_blank');
-    }
-
-    // סגירת מודלים
     function closeModal(id) {
         document.getElementById(id).style.display = 'none';
+    }
+
+    // סגירת מודל בלחיצה מחוץ לתוכן
+    window.onclick = function(event) {
+        if (event.target.className === 'admin-modal') {
+            event.target.style.display = 'none';
+        }
     }
 
     // אתחול כפתור גוגל
@@ -447,16 +554,12 @@
             callback: handleLogin
         });
         google.accounts.id.renderButton(document.getElementById('googleBtn'), {
-            theme: 'outline', 
+            theme: 'filled_black', // התאמה לעיצוב השחור
             size: 'large',
             shape: 'pill',
             text: 'signin_with'
         });
     };
-</script>
-
-</body>
-</html>
 </script>
 
 </body>
