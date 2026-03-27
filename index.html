@@ -3138,16 +3138,11 @@ async function addAdmin(){
   if(!email||!email.includes('@')){showAdminMsgResult('אימייל לא תקין','red');return;}
   if(!name){showAdminMsgResult('יש להזין שם','red');return;}
   try{
-    const r=await fetch(BACKEND+'/
-                        allowed_add',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({admin_email:me.email,email,name,picture:''})});
+    const r=await fetch(BACKEND+'/allowed_add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({admin_email:me.email,email,name,picture:''})});
     const d=await r.json();
     if(d.status==='success'){
-      document.getElementById('newAdminEmail').value='';
-      document.getElementById('newAdminName').value='';
-      showAdminMsgResult('נוסף ✓','green');
-      await refreshAdminsList();
-      await loadAllowedMap();
+      document.getElementById('newAdminEmail').value=''; document.getElementById('newAdminName').value='';
+      showAdminMsgResult('נוסף ✓','green'); await refreshAdminsList(); await loadAllowedMap();
     }else{showAdminMsgResult(d.msg||'שגיאה','red');}
   }catch(e){showAdminMsgResult('שגיאת שרת','red');}
 }
