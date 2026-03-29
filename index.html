@@ -513,4 +513,27 @@
   </div>
 </div>
 
-<script da
+<script src="./script.js" defer></script>
+<script>
+  window.addEventListener('load', function() {
+    fetch('/api/settings').then(r=>r.json()).then(d=>{
+      if(d) { siteGlobalSettings=d; try{localStorage.setItem('siteGlobalSettings',JSON.stringify(d));}catch(e){} }
+    }).catch(()=>{});
+
+    const saved = loadSavedUser();
+    if(saved) { verifyAndLogin(saved); }
+    else {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogle,
+        auto_select: false
+      });
+      google.accounts.id.renderButton(document.getElementById('googleBtn'), {
+        theme: 'outline', size: 'large', shape: 'pill',
+        text: 'signin_with', locale: 'he'
+      });
+    }
+  });
+</script>
+</body>
+</html>
