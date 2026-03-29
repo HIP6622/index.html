@@ -506,3 +506,49 @@ body.has-compose #scrollDownBtn{bottom:calc(var(--compose-h,120px) + 16px);}
 .lb-info { flex:1; }
 .lb-stats { display:flex; gap:15px; font-size:12px; font-weight:700; color:#4b5563; }
 .lb-stat-badge { background:#eff6ff; color:#1a56db; padding:4px 10px; border-radius:8px; display:flex; align-items:center; gap:5px; }
+
+/* ══ ADDITIONS & FIXES ══ */
+
+/* emoji picker — relative position for X button */
+#emojiPicker { position: relative; }
+.ep-close-btn { position:absolute; top:5px; left:5px; }
+
+/* quote block — prettier */
+.quote-block {
+  display:flex; flex-direction:column; gap:3px;
+  background: linear-gradient(135deg,#f0f6ff,#f8faff);
+  border-right: 3px solid #1a56db;
+  border-radius: 10px; padding: 8px 12px; margin-bottom: 10px;
+  cursor: pointer; transition: background .15s;
+}
+.quote-block:hover { background: #e8f0fe; }
+.quote-block-text { font-size:13px; color:#6b7280; font-style:italic; line-height:1.5; }
+
+/* report modal overlay */
+#reportModalOverlay { display:flex !important; }
+#reportModalOverlay[style*="display:none"] { display:none !important; }
+
+/* toast */
+@keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* header email badge */
+#hdrEmailCountBadge { animation: pickerPop .3s ease-out; }
+
+/* loadMore spinner show */
+#loadMoreSpinner.show { display:flex; }
+
+/* admin msgs send row show */
+.admin-msgs-send.show { display:flex; }
+
+/* reports modal */
+#reportsModal { display:flex !important; }
+#reportsModal[style*="display:none"] { display:none !important; }
+
+/* search bar open state */
+#searchBar.open { display:flex; }
+
+/* dark mode additions */
+body.dark .quote-block { background:#1e2a3a; border-color:#3b82f6; }
+body.dark .quote-block:hover { background:#1a2535; }
+body.dark .quote-block-text { color:#9ca3af; }
+body.dark #reportModalOverlay > div { background:#1a1a2e; }
