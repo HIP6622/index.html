@@ -400,44 +400,33 @@ function renderRxn(msgId,rxns, barElement=null){
   else{const b=document.createElement('button');b.className='rxn-add-btn'+(activeTypes.length>=5?' maxed':'');b.innerHTML=REACT_SVG;b.onclick=(ev)=>openPicker(ev,msgId);bar.appendChild(b);}
 }
 
-// תיקון אימוג'ים - סגירה בלחיצה חיצונית
 document.addEventListener('click',e=>{
-    const picker = document.getElementById('emojiPicker');
-    if(picker && picker.classList.contains('show')) {
-        if(!picker.contains(e.target) && !e.target.closest('.rxn-add-btn')){
-            picker.classList.remove('show');
-            picker.style.display = 'none';
-            activePicker = null;
-        }
-    }
+  if(!e.target.closest('#emojiPicker')&&!e.target.closest('.rxn-add-btn')) document.getElementById('emojiPicker').classList.remove('show');
+  if(!e.target.closest('.ctb-dropdown')&&!e.target.closest('.ctb-dropdown-wrap')) closeAllCtbDropdowns();
 });
 
 function openPicker(ev,msgId){
-  ev.stopPropagation();
-  activePicker=msgId;
+  ev.stopPropagation(); activePicker=msgId;
   const p=document.getElementById('emojiPicker');
-  p.style.display='grid';
-  requestAnimationFrame(()=>{
-    const rect=ev.currentTarget.getBoundingClientRect();
-    const pickerH = p.offsetHeight || 220;
-    const pickerW = p.offsetWidth || 280;
-    const top = rect.top - pickerH - 8;
-    p.style.top = Math.max(64, top) + 'px';
-    p.style.left = Math.max(8, rect.right - pickerW) + 'px';
-    p.classList.add('show');
-  });
-}
-function closeEmojiPicker(){
-  const p=document.getElementById('emojiPicker');
-  if(p){p.classList.remove('show');p.style.display='none';}
-  activePicker=null;
+  p.style.visibility='hidden'; p.style.display='grid';
+  const pH=p.offsetHeight, pW=p.offsetWidth;
+  p.style.display=''; p.style.visibility='';
+  const rect=ev.currentTarget.getBoundingClientRect();
+  const M=8;
+  let top=rect.top-pH-M;
+  if(top<56+M) top=rect.bottom+M;
+  top=Math.max(56+M,top);
+  let left=rect.right-pW;
+  if(left<M) left=M;
+  if(left+pW>window.innerWidth-M) left=window.innerWidth-pW-M;
+  p.style.top=top+'px'; p.style.left=left+'px';
+  p.classList.add('show');
 }
 
 function pickEmoji(em){
-    const p = document.getElementById('emojiPicker');
-    if(p) { p.classList.remove('show'); p.style.display='none'; }
-    if(activePicker) doReact(activePicker,em);
-    activePicker = null;
+  document.getElementById('emojiPicker').classList.remove('show');
+  if(activePicker) doReact(activePicker,em);
+  activePicker=null;
 }
 
 async function doReact(msgId,emoji){
@@ -466,13 +455,40 @@ async function deleteFeedMsg(id){
   }catch(e){}
 }
 
-// מנגנון ציטוט
 function quoteFeedMsg(id){
-    const msg = items.find(i=>i.id===id); if(!msg) return;
-    const ed = document.getElementById('composeEditor');
-    ed._quoteData = {id: id, sender: msg.sender||msg.senderEmail||'משתמש', text: (msg.text||'').replace(/<[^>]+>/g,'').substring(0,80)};
-    updateAttachPreview();
-    ed.focus();
+  if(!isAdmin()) return;
+  const entry=items.find(e=>e.id===id);
+  if(!entry) return;
+  const ed=document.getElementById('composeEditor');
+  const rawText=(entry.text||'').trim();
+  const lines=rawText.split('\n');
+  const preview=lines.slice(0,2).join(' ').substring(0,100)+(rawText.length>100?'…':'');
+  ed._quoteData={id, text:rawText, preview};
+  ed.innerHTML='';
+  const qDiv=document.createElement('div');
+  qDiv.setAttribute('data-quote-preview','1');
+  qDiv.contentEditable='false';
+  qDiv.style.cssText='background:#f3f4f6;border-right:3px solid #9ca3af;border-radius:8px;padding:7px 10px;margin-bottom:6px;color:#6b7280;font-size:13px;font-style:italic;cursor:default;user-select:none;display:flex;align-items:center;gap:6px;';
+  qDiv.innerHTML=`<i class="fas fa-quote-right" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(preview)}</span><button onclick="cancelQuote()" style="margin-right:auto;background:none;border:none;cursor:pointer;color:#aaa;font-size:12px;padding:0;line-height:1;flex-shrink:0;">✕</button>`;
+  ed.appendChild(qDiv);
+  const cursor=document.createElement('div');
+  cursor.innerHTML='<br>';
+  ed.appendChild(cursor);
+  ed.focus();
+  const range=document.createRange();
+  range.setStart(cursor,0);
+  range.collapse(true);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  document.getElementById('adminComposeBar')?.scrollIntoView({behavior:'smooth',block:'end'});
+  onComposeChange();
+}
+
+function cancelQuote(){
+  const ed=document.getElementById('composeEditor');
+  ed.querySelector('[data-quote-preview]')?.remove();
+  ed._quoteData=null;
+  onComposeChange();
 }
 
 // מערכת דיווחים — modal מודרני
@@ -1159,114 +1175,211 @@ function showAdMsg(txt,color){ const el=document.getElementById('adMsg');el.text
    צ'אט מנהלים — Admin Internal Chat
    ══════════════════════════════════════════ */
 
+const CHAT_COLORS=['#3b82f6','#7c3aed','#059669','#d97706','#dc2626','#db2777'];
+const chatCol=s=>CHAT_COLORS[(s||'').charCodeAt(0)%CHAT_COLORS.length];
+
+function renderChatText(t){
+  if(!t) return '';
+  let s=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  s=s.replace(/\*([^*\n]+)\*/g,'<strong>$1</strong>');
+  s=s.replace(/\_([^_\n]+)\_/g,'<em>$1</em>');
+  s=s.replace(/(https?:\/\/[^\s<>"']+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+
 let _chatKnownIds = new Set();
-let _chatTypingUsers = {}; // email -> timestamp
+let _chatTypingUsers = {};
 let _chatTypingTimer = null;
 
-async function loadAdminChat() {
-  try {
-    const r = await fetch(BACKEND + '/chat_get');
-    const d = await r.json();
-    if (d.status !== 'ok') return;
-    const msgs = d.chat || [];
-    const box = document.getElementById('chatMessages');
-    if (!box) return;
-    const newMsgs = msgs.filter(m => !_chatKnownIds.has(m.id));
-    if (!newMsgs.length) return;
-    const emptyMsg = document.getElementById('chatEmptyMsg');
-    if (emptyMsg) emptyMsg.style.display = 'none';
-    const wasAtBottom = (box.scrollHeight - box.scrollTop - box.clientHeight) < 60;
-    newMsgs.forEach(m => {
-      _chatKnownIds.add(m.id);
-      const isMine = m.email === me?.email;
-      const av = (_allowedMap[m.email]?.picture || me?.picture)
-        ? `<img src="${escAttr(_allowedMap[m.email]?.picture || me.picture)}" class="chat-av">`
-        : `<div class="chat-av-i">${esc((m.name || '?')[0].toUpperCase())}</div>`;
-      const div = document.createElement('div');
-      div.className = 'chat-msg' + (isMine ? ' mine' : '');
-      div.innerHTML = `${!isMine ? av : ''}
-        <div class="chat-bubble-wrap">
-          ${!isMine ? `<div class="chat-sender">${esc(m.name || m.email)}</div>` : ''}
-          <div class="chat-bubble">${esc(m.text)}</div>
-          <div class="chat-time">${m.time || ''}</div>
-        </div>
-        ${isMine ? av : ''}`;
-      box.appendChild(div);
-    });
-    if (wasAtBottom) box.scrollTop = box.scrollHeight;
-    // עדכן תג הנוכחים
-    const presEl = document.getElementById('chatPresenceCount');
-    if (presEl) presEl.textContent = Math.max(1, Object.keys(_chatTypingUsers).length + 1);
-  } catch(e) {}
-}
-
-async function sendChatMsg() {
-  if (!me) return;
-  const inp = document.getElementById('chatInput');
-  const text = (inp?.value || '').trim();
-  if (!text) return;
-  clearChatTyping();
-  try {
-    const res = await fetch(BACKEND + '/chat_add', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email: me.email, name: _allowedMap[me.email.toLowerCase()]?.name || me.name, text })
-    });
-    const d = await res.json();
-    if(d.status === 'ok') {
-      inp.value = ''; inp.style.height = 'auto';
-      await loadAdminChat();
+async function loadAdminChat(){
+  if(!isAdmin()) return;
+  try{
+    const r=await fetch(BACKEND+'/chat_messages');
+    const d=await r.json();
+    if(d.status!=='success') return;
+    const msgs=d.messages||[];
+    const sig=msgs.map(m=>m.id+(m.reactions?JSON.stringify(m.reactions):'')).join(',');
+    if(sig===chatLastIds) return;
+    const hadMsgs=chatLastIds!=='';
+    chatLastIds=sig;
+    renderAdminChat(msgs);
+    if(hadMsgs&&msgs.length){
+      const newest=msgs[msgs.length-1];
+      if(newest.email!==me?.email)
+        sendNotification("צ'אט מנהלים", getDisplayName(newest.email,newest.sender)+': '+(newest.text||'').substring(0,40));
     }
-  } catch(e) { console.error('chat send error', e); }
+  }catch(e){}
 }
 
-function handleChatInputKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMsg(); }
-}
+function renderAdminChat(msgs){
+  const box=document.getElementById('chatMessages');
+  if(!box) return;
+  const empty=document.getElementById('chatEmptyMsg');
+  const atBot=box.scrollHeight-box.scrollTop-box.clientHeight<80;
 
-// אינדיקטור הקלדה — שמור timestamp מקומי בלבד (אין route בשרת)
-function onChatType() {
-  _chatTypingUsers[me?.email] = Date.now();
-  clearTimeout(_chatTypingTimer);
-  _chatTypingTimer = setTimeout(clearChatTyping, 3000);
-  updateChatTypingBar();
-}
-
-function clearChatTyping() {
-  delete _chatTypingUsers[me?.email];
-  clearTimeout(_chatTypingTimer);
-  updateChatTypingBar();
-}
-
-function updateChatTypingBar() {
-  const bar = document.getElementById('chatTypingBar');
-  if (!bar) return;
-  const others = Object.entries(_chatTypingUsers)
-    .filter(([email, ts]) => email !== me?.email && Date.now() - ts < 4000)
-    .map(([email]) => _allowedMap[email]?.name || email.split('@')[0]);
-  if (others.length) {
-    bar.style.display = 'block';
-    bar.textContent = others.join(', ') + (others.length === 1 ? ' מקליד...' : ' מקלידים...');
-  } else {
-    bar.style.display = 'none';
+  if(!msgs.length){
+    box.innerHTML='';
+    if(empty){empty.style.display='block'; box.appendChild(empty);}
+    return;
   }
-}
+  if(empty) empty.style.display='none';
 
-// pollChatTyping — נקראת מ-setInterval, מנקה typing ישן
-function pollChatTyping() {
-  const now = Date.now();
-  Object.keys(_chatTypingUsers).forEach(email => {
-    if (now - _chatTypingUsers[email] > 4000) delete _chatTypingUsers[email];
+  box.innerHTML='';
+  let lastDate='', lastEmail='', lastMin='';
+
+  msgs.forEach((msg,idx)=>{
+    const isMe=msg.email===me?.email;
+    const displayName=getDisplayName(msg.email,msg.sender);
+    const picture=msg.picture||_allowedMap[(msg.email||'').toLowerCase()]?.picture||'';
+    const msgMin=(msg.clientTime||msg.time||'').substring(0,5);
+    const sameGroup=lastEmail===msg.email&&msgMin===lastMin;
+
+    const d=msg.date||msg.clientDate||'';
+    if(d&&d!==lastDate){
+      const sep=document.createElement('div');
+      sep.className='chat-date-sep';
+      sep.innerHTML=`<span>${d}</span>`;
+      box.appendChild(sep);
+      lastDate=d;
+    }
+
+    const grp=document.createElement('div');
+    grp.className='chat-grp'+(isMe?' me':'')+(!sameGroup&&idx>0?' gap':'');
+
+    const avEl=document.createElement('div');
+    avEl.className='chat-av';
+    avEl.style.background=chatCol(displayName);
+    avEl.style.visibility=sameGroup?'hidden':'visible';
+    if(picture){
+      const img=document.createElement('img');
+      img.src=picture;
+      img.onerror=()=>{img.style.display='none'; avEl.textContent=displayName[0].toUpperCase();};
+      avEl.appendChild(img);
+    } else { avEl.textContent=displayName[0].toUpperCase(); }
+
+    const bubs=document.createElement('div');
+    bubs.className='chat-bubs'+(isMe?' me':' other');
+
+    if(!isMe&&!sameGroup){
+      const nm=document.createElement('div');
+      nm.className='chat-sender';
+      nm.style.color=chatCol(displayName);
+      nm.textContent=displayName;
+      bubs.appendChild(nm);
+    }
+
+    const bub=document.createElement('div');
+    bub.className='chat-bub '+(isMe?'me':'other');
+    bub.dataset.id=msg.id;
+    bub.innerHTML=renderChatText(msg.text||'');
+    const t=msg.clientTime||msg.time||'';
+    if(t){
+      const ts=document.createElement('span');
+      ts.className='chat-time';
+      ts.textContent=' '+t;
+      bub.appendChild(ts);
+    }
+    bub.addEventListener('dblclick',ev=>{ev.preventDefault(); showChatCtx(ev,msg,isMe);});
+    bubs.appendChild(bub);
+
+    if(isMe){grp.appendChild(bubs); grp.appendChild(avEl);}
+    else{grp.appendChild(avEl); grp.appendChild(bubs);}
+    box.appendChild(grp);
+
+    lastEmail=msg.email; lastMin=msgMin;
   });
-  updateChatTypingBar();
+
+  if(atBot) box.scrollTop=box.scrollHeight;
 }
 
-// pingChatPresence — אין route בשרת, מעדכן תג נוכחים בצד לקוח
-function pingChatPresence() {
-  const presEl = document.getElementById('chatPresenceCount');
-  if (presEl) {
-    const activeTypers = Object.values(_chatTypingUsers).filter(ts => Date.now() - ts < 5000).length;
-    presEl.textContent = Math.max(1, activeTypers + 1);
-  }
+let _ctxMsgId=null;
+function showChatCtx(ev,msg,isMe){
+  ev.stopPropagation();
+  _ctxMsgId=msg.id;
+  const menu=document.getElementById('chatCtxMenu');
+  if(!menu) return;
+  const canDel=isMe||isSuperAdmin();
+  menu.innerHTML=
+    `<div class="ctx-item" onclick="copyChatMsg('${escAttr(msg.id)}')"><i class="fas fa-copy"></i> העתק</div>`+
+    (canDel?`<div class="ctx-item danger" onclick="deleteChatMsg('${escAttr(msg.id)}')"><i class="fas fa-trash"></i> מחק</div>`:'');
+  menu.classList.add('show');
+  menu.style.left=ev.clientX+'px'; menu.style.top=ev.clientY+'px';
+  requestAnimationFrame(()=>{
+    const r=menu.getBoundingClientRect();
+    if(r.right>window.innerWidth) menu.style.left=(ev.clientX-r.width)+'px';
+    if(r.bottom>window.innerHeight) menu.style.top=(ev.clientY-r.height)+'px';
+  });
+}
+function hideChatCtx(){ document.getElementById('chatCtxMenu')?.classList.remove('show'); }
+document.addEventListener('click',e=>{if(!e.target.closest('#chatCtxMenu')) hideChatCtx();});
+
+function copyChatMsg(id){
+  const bub=document.querySelector(`.chat-bub[data-id="${id}"]`);
+  if(!bub) return;
+  const text=bub.innerText.replace(/\s+\d{2}:\d{2}$/,'').trim();
+  navigator.clipboard.writeText(text).catch(()=>{});
+  hideChatCtx();
+}
+
+async function deleteChatMsg(id){
+  hideChatCtx();
+  if(!confirm('למחוק הודעה זו?')) return;
+  try{
+    await fetch(BACKEND+'/chat_delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:me.email,id})});
+    chatLastIds=''; loadAdminChat();
+  }catch(e){}
+}
+
+function onChatType(){
+  if(!me) return;
+  fetch(BACKEND+'/typing_ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:getDisplayName(me.email,me.name),email:me.email})}).catch(()=>{});
+  clearTimeout(_chatTypingTimer);
+  _chatTypingTimer=setTimeout(()=>{
+    fetch(BACKEND+'/typing_stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:me.email})}).catch(()=>{});
+  },3000);
+}
+
+async function pollChatTyping(){
+  if(!isAdmin()) return;
+  try{
+    const r=await fetch(BACKEND+'/typing_status');
+    const d=await r.json();
+    const others=(d.typers||[]).filter(n=>n!==me?.name);
+    const bar=document.getElementById('chatTypingBar');
+    if(others.length){bar.style.display='block'; bar.textContent=others.map(n=>getDisplayName('',n)).join(', ')+' מקלידים...';}
+    else{bar.style.display='none';}
+  }catch(e){}
+}
+
+async function pingChatPresence(){
+  if(!me) return;
+  try{
+    const r=await fetch(BACKEND+'/presence_ping',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:me.email,name:me.name,picture:me.picture})});
+    const d=await r.json();
+    const presEl=document.getElementById('chatPresenceCount');
+    if(presEl) presEl.textContent=(d.active||[]).length;
+  }catch(e){}
+}
+
+async function sendChatMsg(){
+  const inp=document.getElementById('chatInput');
+  const text=inp.value.trim();
+  if(!text||!me) return;
+  const now=new Date();
+  const clientTime=now.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit',hour12:false});
+  const clientDate=now.toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'/');
+  inp.value=''; inp.style.height='auto';
+  clearTimeout(_chatTypingTimer);
+  fetch(BACKEND+'/typing_stop',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:me.email})}).catch(()=>{});
+  try{
+    await fetch(BACKEND+'/chat_send',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sender:getDisplayName(me.email,me.name),text,picture:me.picture,email:me.email,clientTime,clientDate,clientTs:now.getTime()})});
+    chatLastIds=''; loadAdminChat();
+  }catch(e){}
+}
+
+function handleChatInputKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault(); sendChatMsg();}
 }
 
 // checkChatMention — @mention dropdown בסיסי
@@ -1478,21 +1591,6 @@ function showAdminMsg(txt, color) {
   el.style.color = color === 'green' ? '#16a34a' : '#dc2626';
   el.style.display = 'block';
   setTimeout(() => el.style.display = 'none', 3000);
-}
-
-function initGoogle() {
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: handleGoogle,
-    auto_select: true
-  });
-  const saved = loadSavedUser();
-  if (saved) { verifyAndLogin(saved); return; }
-  google.accounts.id.renderButton(
-    document.getElementById('googleBtn'),
-    { theme: 'outline', size: 'large', locale: 'he', width: 240 }
-  );
-  google.accounts.id.prompt();
 }
 
 function tryInitGoogle() { if (window.google && window.google.accounts) { initGoogle(); } else { setTimeout(tryInitGoogle, 100); } }
