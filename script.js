@@ -1614,4 +1614,10 @@ function tryInitGoogle() {
 }
 
 setInterval(pollAll, 3000);
-window.addEventListener('load', tryInitGoogle);
+
+// כי script.js נטען עם defer, ה-load event כבר ירה — קוראים ישירות
+if (document.readyState === 'complete') {
+  tryInitGoogle();
+} else {
+  window.addEventListener('load', tryInitGoogle);
+}
