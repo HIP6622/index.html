@@ -959,12 +959,29 @@ function toggleSearch() {
     }
 }
 
+// הפונקציה הזו פותחת וסוגרת את תיבת החיפוש
+function toggleSearch() {
+    const bar = document.getElementById('searchBar');
+    if (!bar) return;
+    bar.classList.toggle('open');
+    if (bar.classList.contains('open')) {
+        setTimeout(() => {
+            const input = document.getElementById('searchInput');
+            if (input) input.focus();
+        }, 100);
+    } else {
+        clearSearch();
+    }
+}
+
+// הפונקציה הזו מופעלת כשאתה מקליד בתוך התיבה
 let searchTimeout = null;
 function onSearch(val){
     const searchClear = document.getElementById('searchClear');
     if(searchClear) searchClear.classList.toggle('show', val.length > 0);
     if(!val || val.trim()==='') { clearSearch(); return; }
     
+    // השהייה כדי לא להקריס את השרת
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         doSearch(val);
