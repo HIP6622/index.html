@@ -62,11 +62,50 @@ let CHANNELS = [
 
 function renderChannels() {
   const list = document.getElementById('channelsList'); if(!list) return;
-  list.innerHTML = CHANNELS.map(ch => `<div class="channel-item ${ch.id === currentChannelId ? 'active' : ''}" onclick="switchChannel('${ch.id}', '${ch.name}')"><i class="fas ${ch.icon}"></i> ${ch.name}</div>`).join('');
   
+  // נשמור את רשימת היוצרים בצד כדי שלא תימחק כשאנחנו בונים את התפריט
+  const cl = document.getElementById('creatorsList');
+  const isFolderOpen = document.getElementById('creatorsFolderContent')?.style.display === 'block';
+
+  let html = '';
+  CHANNELS.forEach((ch, index) => {
+    html += `<div class="channel-item ${ch.id === currentChannelId ? 'active' : ''}" onclick="switchChannel('${ch.id}', '${ch.name}')"><i class="fas ${ch.icon}"></i> ${ch.name}</div>`;
+    
+    // הכנסת תיקיית "לפי יוצרים" מיד אחרי "הערוץ הרשמי" (שזה אינדקס 0)
+    if (index === 0) {
+      html += `
+        <div class="channel-item" onclick="toggleCreatorsFolder()" style="justify-content: space-between; background:#f9fafb; border-bottom:1px solid #f0f0f0;">
+          <div><i class="fas fa-folder" style="color:#ca8a04;"></i> לפי יוצרים</div>
+          <i class="fas fa-chevron-${isFolderOpen ? 'up' : 'down'}" id="creatorsFolderIcon" style="font-size:10px; color:#aaa;"></i>
+        </div>
+        <div id="creatorsFolderContent" style="display:${isFolderOpen ? 'block' : 'none'}; background:#fafafa; box-shadow:inset 0 2px 4px rgba(0,0,0,0.02);"></div>
+      `;
+    }
+  });
+  list.innerHTML = html;
+  
+  // הכנסת היוצרים לתוך התיקייה הנפתחת
+  if (cl) document.getElementById('creatorsFolderContent').appendChild(cl);
+  // העלמת הכותרת הישנה של היוצרים מקרקעית התפריט
+  const oldHdr = document.querySelector('.creators-hdr');
+  if (oldHdr) oldHdr.style.display = 'none';
+
   const currentName = CHANNELS.find(c=>c.id===currentChannelId)?.name || 'כללי';
   const hdrName = document.getElementById('hdrChannelName');
   if (hdrName) hdrName.innerHTML = `${esc(siteGlobalSettings.title)} - <span style="color:#1a56db">${currentName}</span>`;
+}
+
+function toggleCreatorsFolder() {
+  const content = document.getElementById('creatorsFolderContent');
+  const icon = document.getElementById('creatorsFolderIcon');
+  if (!content) return;
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+  } else {
+    content.style.display = 'none';
+    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+  }
 }
 
 async function switchChannel(channelId, channelName) {
