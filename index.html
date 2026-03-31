@@ -517,8 +517,7 @@
     <div style="padding:18px 20px;">
       <div style="background:#fff8f0;border-right:3px solid #f97316;border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:13px;color:#92400e;line-height:1.6;">
         <i class="fas fa-info-circle" style="color:#f97316;margin-left:5px;"></i>
-        שימו לב! חובה לציין את הסיבה לדיווח בכדי שנוכל לטפל בבעיה בהקדם האפשרי.
-      </div>
+       <div>שימו לב! חובה לציין את הסיבה לדיווח בכדי שנוכל לטפל בבעיה בהקדם האפשרי.</div>
       <label style="font-size:12px;font-weight:700;color:#374151;display:block;margin-bottom:6px;">תיאור הבעיה</label>
       <textarea id="reportModalInput" rows="4" placeholder="פרט במספר מילים מה הבעיה בהודעה זו..." style="width:100%;border:1.5px solid #e5e7eb;border-radius:12px;padding:10px 12px;font-size:14px;font-family:'Heebo',sans-serif;outline:none;resize:vertical;direction:rtl;transition:border-color .15s;" onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#e5e7eb'" onkeydown="if(event.key==='Enter'&&event.ctrlKey)submitReport()"></textarea>
       <div id="reportModalError" style="display:none;font-size:12px;color:#dc2626;font-weight:700;margin-top:6px;padding:6px 10px;background:#fef2f2;border-radius:8px;"></div>
@@ -527,10 +526,13 @@
       <button id="reportSubmitBtn" onclick="submitReport()" style="flex:1;background:#dc2626;color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .15s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
         <i class="fas fa-paper-plane" style="font-size:12px;"></i> שלח דיווח
       </button>
-      <button onclick="closeReportModal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:12px;padding:12px 20px;
-<button onclick="closeReportModal()" ...>ביטול</button>
+      <button onclick="closeReportModal()" style="background:#f3f4f6;color:#374151;border:none;border-radius:12px;padding:12px 20px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .15s;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+        ביטול
+      </button>
     </div>
   </div>
 </div>
+
+</body>
 
 </body>
