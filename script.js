@@ -149,11 +149,13 @@ async function loadAllowedMap(){
         _allowedMap[e.email.toLowerCase()]={name:e.name||e.email.split('@')[0], picture:e.picture||''};
       }
     });
-    renderChannels();
+   renderChannels();
     if(me) refreshUserMenu();
+    // הצג יוצרים ב-sidebar
+    const creators = (d.emails||[]).filter(e => typeof e === 'object' && e.email);
+    if(window._renderCreatorsSidebar) window._renderCreatorsSidebar(creators);
   }catch(ex){}
 }
-
 function refreshUserMenu(){
   if(!me) return;
   const role = getRole();
@@ -909,23 +911,23 @@ function updateAttachPreview(){
   prev.innerHTML=chips.join(''); prev.classList.toggle('show',chips.length>0);
 }
 
-function onSearch(val){ 
-    const qLow = val.toLowerCase();
+function onSearch(val){
+    const searchClear = document.getElementById('searchClear');
+    if(searchClear) searchClear.classList.toggle('show', val.length > 0);
+    if(!val || val.trim()==='') { clearSearch(); return; }
+    doSearch(val);
+}
+function clearSearch(){
+    document.getElementById('searchInput').value='';
+    document.getElementById('searchBar').classList.remove('open');
+    const searchClear = document.getElementById('searchClear');
+    if(searchClear) searchClear.classList.remove('show');
+    document.getElementById('feedWrap').style.display='';
+    document.getElementById('searchResults').style.display='none';
     const inner = document.getElementById('feedInner');
     inner.innerHTML = '';
-    const filtered = items.filter(e => {
-        const t = (e.text||'').toLowerCase();
-        const tg = (e.tags||[]).join(' ').toLowerCase();
-        return t.includes(qLow) || tg.includes(qLow);
-    });
-    filtered.forEach(m => inner.innerHTML += buildMsg(m));
+    items.forEach(m => inner.innerHTML += buildMsg(m));
 }
-function clearSearch(){ 
-    document.getElementById('searchInput').value=''; 
-    renderChannels();
-    switchChannel('general');
-}
-
 async function sendFeedPost(){
   if(!me) return;
   const role = getRole();
