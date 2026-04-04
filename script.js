@@ -92,15 +92,6 @@ function renderChannels() {
   const hdrName = document.getElementById('hdrChannelName');
   if (hdrName) hdrName.innerHTML = `${esc(siteGlobalSettings.title)} - <span style="color:#1a56db">${currentName}</span>`;
 }
-  list.innerHTML = html;
-  
-// הכנסת היוצרים לתוך התיקייה הנפתחת
-  if (cl) document.getElementById('creatorsFolderContent').appendChild(cl);
-
-  const currentName = CHANNELS.find(c=>c.id===currentChannelId)?.name || 'כללי';
-  const hdrName = document.getElementById('hdrChannelName');
-  if (hdrName) hdrName.innerHTML = `${esc(siteGlobalSettings.title)} - <span style="color:#1a56db">${currentName}</span>`;
-}
 
 function toggleCreatorsFolder() {
   const content = document.getElementById('creatorsFolderContent');
@@ -108,13 +99,12 @@ function toggleCreatorsFolder() {
   if (!content) return;
   if (content.style.display === 'none') {
     content.style.display = 'block';
-    icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+    if(icon) icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
   } else {
     content.style.display = 'none';
-    icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+    if(icon) icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
   }
 }
-
 async function switchChannel(channelId, channelName) {
   if (currentChannelId === channelId) return;
   currentChannelId = channelId; renderChannels();
