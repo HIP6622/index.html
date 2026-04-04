@@ -1608,28 +1608,6 @@ function renderCreatorsSidebar(admins) {
     </div>`;
   }).join('');
 }
-  const colorPalette = ['#1a56db','#7c3aed','#059669','#e02020','#d97706','#0891b2','#db2777'];
-  list.innerHTML = creators.map(creator => {
-    const name = creator.name || creator.displayName || '?';
-    const initials = name.charAt(0).toUpperCase();
-    const color = colorPalette[Math.abs(initials.charCodeAt(0)) % colorPalette.length];
-    const pic = creator.picture || creator.photoURL || creator.avatar || '';
-    const avInner = pic
-      ? `<img src="${escAttr(pic)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">`
-      : initials;
-    const avStyle = pic ? '' : `background:${color};`;
-    
-    // תיקון: אם חסר סלאג, ניקח אוטומטית את תחילת האימייל כזיהוי ייחודי
-    const slug = creator.slug || creator.email.split('@')[0];
-    
-    const badge = (creator.role === 'supervisor') ? '<span class="creator-badge">מנהל</span>' : '';
-    return `<div class="creator-item" onclick="switchToCreator('${escAttr(slug)}')" data-slug="${escAttr(slug)}">
-      <div class="creator-av" style="${avStyle}">${avInner}</div>
-      <span class="creator-name">${esc(name)}</span>
-      ${badge}
-    </div>`;
-  }).join('');
-}
 
 let _creatorsPanelOpen = false;
 
