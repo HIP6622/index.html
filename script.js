@@ -61,7 +61,7 @@ let CHANNELS = [
   { id: 'misc', name: 'שונות (בדיחות ותכני AI)', icon: 'fa-smile-beam' }
 ];
 
-onclick=toggleCreatorsPanel() {
+function renderChannels() {
   const list = document.getElementById('channelsList'); if(!list) return;
   
   // נשמור את רשימת היוצרים בצד כדי שלא תימחק כשאנחנו בונים את התפריט
@@ -75,7 +75,7 @@ onclick=toggleCreatorsPanel() {
     // הכנסת תיקיית "לפי יוצרים" מיד אחרי "הערוץ הרשמי" (שזה אינדקס 0)
     if (index === 0) {
       html += `
-        <div class="channel-item" onclick="toggleCreatorsPanel()" style="justify-content: space-between; background:#f9fafb; border-bottom:1px solid #f0f0f0;">
+        <div class="channel-item" onclick="toggleCreatorsFolder()" style="justify-content: space-between; background:#f9fafb; border-bottom:1px solid #f0f0f0;">
           <div><i class="fas fa-folder" style="color:#ca8a04;"></i> לפי יוצרים</div>
           <i class="fas fa-chevron-${isFolderOpen ? 'up' : 'down'}" id="creatorsFolderIcon" style="font-size:10px; color:#aaa;"></i>
         </div>
@@ -83,6 +83,15 @@ onclick=toggleCreatorsPanel() {
       `;
     }
   });
+  list.innerHTML = html;
+  
+  // הכנסת היוצרים לתוך התיקייה הנפתחת
+  if (cl) document.getElementById('creatorsFolderContent').appendChild(cl);
+
+  const currentName = CHANNELS.find(c=>c.id===currentChannelId)?.name || 'כללי';
+  const hdrName = document.getElementById('hdrChannelName');
+  if (hdrName) hdrName.innerHTML = `${esc(siteGlobalSettings.title)} - <span style="color:#1a56db">${currentName}</span>`;
+}
   list.innerHTML = html;
   
   // הכנסת היוצרים לתוך התיקייה הנפתחת
@@ -1608,7 +1617,7 @@ function renderCreatorsSidebar(admins) {
 
 let _creatorsPanelOpen = false;
 
-onclick="toggleCreatorsPanel()" {
+function toggleCreatorsPanel() {
   _creatorsPanelOpen = !_creatorsPanelOpen;
   document.getElementById('creatorsPanel')?.classList.toggle('open', _creatorsPanelOpen);
   document.querySelector('.creators-hdr')?.classList.toggle('open', _creatorsPanelOpen);
