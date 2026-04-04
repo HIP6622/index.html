@@ -1577,13 +1577,37 @@ if (document.readyState === 'complete') {
 
 /* ===== CREATORS SIDEBAR ===== */
 function renderCreatorsSidebar(admins) {
-  const list = document.getElementById('creatorsList');
-  if (!list || !admins) return;
+  const listEl = document.getElementById('creatorsGlassList');
+  if (!listEl || !admins) return;
   const creators = admins.filter(a => typeof a === 'object' && a.email);
   if (!creators.length) {
-    list.innerHTML = '<div style="padding:10px 15px;font-size:12px;color:#aaa;">אין יוצרים עדיין</div>';
+    listEl.innerHTML = '<div style="padding:18px 12px;text-align:center;font-size:12px;color:rgba(255,255,255,0.25);font-family:Heebo,sans-serif;">אין יוצרים עדיין</div>';
     return;
   }
+  const palette = ['#818cf8','#34d399','#f472b6','#fb923c','#60a5fa','#a78bfa','#f87171'];
+  listEl.innerHTML = creators.map((creator, idx) => {
+    const name     = creator.name || creator.displayName || '?';
+    const initials = name.charAt(0).toUpperCase();
+    const color    = palette[Math.abs(name.charCodeAt(0)) % palette.length];
+    const pic      = creator.picture || creator.photoURL || '';
+    const slug     = creator.slug || '';
+    const role     = creator.role === 'supervisor' ? 'מנהל' : 'יוצר';
+    const avContent = pic
+      ? `<img src="${escAttr(pic)}" onerror="this.style.display='none';this.parentElement.style.background='${color}';this.parentElement.textContent='${initials}'">`
+      : initials;
+    const avBg = pic ? '' : `background:${color};`;
+    return `<div class="cg-item" data-slug="${escAttr(slug)}" onclick="selectCreator('${escAttr(slug)}', this)" style="animation:cg-in ${0.12 + idx * 0.04}s ease both;">
+      <div class="cg-av-wrap">
+        <div class="cg-av-ring"></div>
+        <div class="cg-av-inner" style="${avBg}">${avContent}</div>
+      </div>
+      <div class="cg-info">
+        <div class="cg-name">${esc(name)}</div>
+        <div class="cg-role">${esc(role)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
   const colorPalette = ['#1a56db','#7c3aed','#059669','#e02020','#d97706','#0891b2','#db2777'];
   list.innerHTML = creators.map(creator => {
     const name = creator.name || creator.displayName || '?';
@@ -1607,33 +1631,51 @@ function renderCreatorsSidebar(admins) {
   }).join('');
 }
 
-async function switchToCreator(slug) {
-  document.querySelectorAll('.creator-item').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
-  
-  if (!slug) return;
-  const el = document.querySelector('.creator-item[data-slug="' + slug + '"]');
-  if (el) el.classList.add('active');
-  if (window.innerWidth <= 900) document.getElementById('leftSidebar').classList.remove('open');
+let _creatorsPanelOpen = false;
 
-  // משיכת פרטי היוצר
-  const lr = await fetch(BACKEND + '/allowed_list?t=' + Date.now());
-  const ld = await lr.json();
-  const creator = (ld.emails || []).find(e => typeof e === 'object' && (e.slug === slug || e.email.split('@')[0] === slug));
-  const creatorEmail = creator ? creator.email.toLowerCase() : null;
-  const creatorName = creator ? creator.name : 'יוצר';
-
-  if (creatorEmail) {
-    // הקסם: אנחנו שולחים את המשתמש לערוץ בדיוק כמו "שונות" או "עדכונים"
-    switchChannel('creator_' + creatorEmail, 'הערוץ של ' + creatorName);
-    
-    // מוודאים שהכותרת למעלה מתעדכנת לשם היוצר
-    setTimeout(() => {
-        const hdrName = document.getElementById('hdrChannelName');
-        if (hdrName) hdrName.innerHTML = `<span style="color:#1a56db">הערוץ של ${creatorName}</span>`;
-    }, 50);
+function toggleCreatorsPanel() {
+  _creatorsPanelOpen = !_creatorsPanelOpen;
+  document.getElementById('creatorsPanel')?.classList.toggle('open', _creatorsPanelOpen);
+  document.querySelector('.creators-hdr')?.classList.toggle('open', _creatorsPanelOpen);
+  if (_creatorsPanelOpen) {
+    setTimeout(() => document.addEventListener('click', _closePanelOutside), 0);
+  } else {
+    document.removeEventListener('click', _closePanelOutside);
   }
 }
+
+function _closePanelOutside(e) {
+  const panel = document.getElementById('creatorsPanel');
+  const hdr   = document.querySelector('.creators-hdr');
+  if (panel && !panel.contains(e.target) && hdr && !hdr.contains(e.target)) {
+    _creatorsPanelOpen = false;
+    panel.classList.remove('open');
+    hdr.classList.remove('open');
+    document.removeEventListener('click', _closePanelOutside);
+  }
+}
+
+function closeCreatorsPanel() {
+  _creatorsPanelOpen = false;
+  document.getElementById('creatorsPanel')?.classList.remove('open');
+  document.querySelector('.creators-hdr')?.classList.remove('open');
+  document.removeEventListener('click', _closePanelOutside);
+}
+
+function selectCreator(slug, el) {
+  document.querySelectorAll('.cg-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (window.innerWidth <= 900) closeCreatorsPanel();
+}
+
+(function injectCreatorKeyframe() {
+  if (document.getElementById('cg-keyframes')) return;
+  const s = document.createElement('style');
+  s.id = 'cg-keyframes';
+  s.textContent = '@keyframes cg-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }';
+  document.head.appendChild(s);
+})();
+
 // פונקציה חכמה לסגירת חלונות דיווח (רגיל וניהול)
 window.closeReportModal = function() {
     // 1. מזהה מאיפה לחצו (מה-X, מהביטול או מהרקע) וסוגר את מעטפת האב המרכזית
