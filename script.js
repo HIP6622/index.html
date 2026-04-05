@@ -1693,42 +1693,55 @@ async function uploadToImgBB(input) {
         input.value = ''; // מאפס את שדה הבחירה כדי שתוכל להעלות שוב
     }
 }
-// ====== העלאת תמונות אוטומטית ל-ImgBB ======
-async function uploadToImgBB(file) {
-  if (!file) return;
-  
-  const progressEl = document.getElementById('imgUploadProgress');
-  const urlInput = document.getElementById('composeImgUrl');
-  
-  // מציג למשתמש אנימציית טעינה ונועל את התיבה
-  if (progressEl) progressEl.style.display = 'block';
-  if (urlInput) urlInput.disabled = true;
-  
-  const formData = new FormData();
-  formData.append('image', file);
-  
-  try {
-    const res = await fetch('https://api.imgbb.com/1/upload?key=3608f987ec12ff8b4b6100fbd0c86b0e', {
-      method: 'POST',
-      body: formData
-    });
-    const data = await res.json();
+// ====== העלאת תמונות אוטומטית ל-ImgBB (גרסת Base64 חסינה לשגיאות) ======
+async function uploadToImgBB(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const statusEl = document.getElementById('uploadStatus');
+    const urlInput = document.getElementById('composeImgUrl');
+    const thumbWrap = document.getElementById('composeImgThumb');
+    const thumbImg = document.getElementById('composeImgThumbImg');
     
-    if (data.success) {
-      if (urlInput) urlInput.value = data.data.url;
-      if (typeof updateComposeImg === 'function') updateComposeImg(); 
-    } else {
-      alert('שגיאה בהעלאת התמונה: ' + (data.error?.message || 'נסה שוב'));
-    }
-  } catch (err) {
-    console.error("ImgBB upload error:", err);
-    alert('שגיאת תקשורת בזמן העלאת התמונה. ודא שהאינטרנט מחובר.');
-  } finally {
-    if (progressEl) progressEl.style.display = 'none';
-    if (urlInput) urlInput.disabled = false;
-    const fileInput = document.getElementById('imgUploadInput');
-    if (fileInput) fileInput.value = ''; 
-  }
+    if (statusEl) statusEl.style.display = 'block';
+    if (urlInput) urlInput.disabled = true;
+
+    // קריאת הקובץ והמרתו לטקסט (Base64) כדי ש-ImgBB יקבל אותו באהבה
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async function() {
+        try {
+            // חיתוך הקידומת של הדפדפן כדי לשלוח נטו את התמונה
+            const base64String = reader.result.split(',')[1];
+            const formData = new FormData();
+            formData.append('image', base64String);
+
+            const response = await fetch('https://api.imgbb.com/1/upload?key=3608f987ec12ff8b4b6100fbd0c86b0e', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                const finalUrl = result.data.url;
+                if (urlInput) urlInput.value = finalUrl;
+                if (thumbImg && thumbWrap) {
+                    thumbImg.src = finalUrl;
+                    thumbWrap.style.display = 'block';
+                }
+                if (typeof updateComposeImg === 'function') updateComposeImg();
+            } else {
+                alert('שגיאה משרת התמונות: ' + (result.error?.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('ההעלאה נכשלה. ודא שהאינטרנט מחובר ושהקובץ תקין.');
+        } finally {
+            if (statusEl) statusEl.style.display = 'none';
+            if (urlInput) urlInput.disabled = false;
+            input.value = ''; 
+        }
+    };
 }
 // הבטחה שכפתור היוצרים ייפתח תמיד
 window.toggleCreatorsPanel = function() {
