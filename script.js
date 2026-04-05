@@ -1889,22 +1889,18 @@ window.closeSiteStats = function() {
 }
 
 // ====== "שומר חכם" שמציג את הסטטיסטיקות רק למנהלים ======
-(function syncStatsButton() {
+setInterval(function() {
     const adminBar = document.getElementById('adminComposeBar');
     const statsBtn = document.getElementById('statsMenuBtn');
     
     if (adminBar && statsBtn) {
-        // הפונקציה שבודקת אם המשתמש רואה את סרגל המנהלים
-        const updateVisibility = () => {
-            const isVisible = window.getComputedStyle(adminBar).display !== 'none';
-            statsBtn.style.display = isVisible ? 'flex' : 'none';
-        };
+        // בודק אם סרגל המנהלים מוצג במסך
+        const isVisible = window.getComputedStyle(adminBar).display !== 'none';
         
-        // עושה בדיקה אחת מיד כשהאתר עולה
-        updateVisibility();
-        
-        // מצמיד "מרגל" לסרגל המנהלים - ברגע שהוא נדלק/נכבה, הכפתור מגיב אוטומטית
-        const observer = new MutationObserver(updateVisibility);
-        observer.observe(adminBar, { attributes: true, attributeFilter: ['style', 'class'] });
+        if (isVisible) {
+            statsBtn.style.setProperty('display', 'flex', 'important'); // מציג למנהל
+        } else {
+            statsBtn.style.setProperty('display', 'none', 'important'); // מסתיר למשתמש רגיל
+        }
     }
-})();
+}, 1000);
