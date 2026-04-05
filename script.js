@@ -1750,3 +1750,66 @@ window.toggleCreatorsPanel = function() {
     if (panel) panel.classList.toggle('open');
     if (hdr) hdr.classList.toggle('open');
 };
+// ====== מנגנון גלילה אינסופית (משיכת היסטוריה) ======
+window.isLoadingOlder = false;
+
+window.loadOlderMessages = async function() {
+    if (window.isLoadingOlder || typeof allLoaded === 'undefined' || allLoaded || typeof oldestTs === 'undefined' || !oldestTs) return;
+    window.isLoadingOlder = true;
+    
+    const inner = document.getElementById('feedInner');
+    if (!inner) return;
+    
+    const loaderId = 'historyLoader_' + Date.now();
+    inner.insertAdjacentHTML('afterbegin', `<div id="${loaderId}" style="text-align:center; padding:15px; color:#1a56db; font-size:13px; font-weight:bold;">מושך היסטוריה מהשרת...</div>`);
+    
+    try {
+        const r = await fetch(BACKEND + `/feed?channel=${currentChannelId}&before=${oldestTs}&limit=30&t=${Date.now()}`);
+        const d = await r.json();
+        
+        const loaderEl = document.getElementById(loaderId);
+        if(loaderEl) loaderEl.remove();
+        
+        if (d.status === 'ok') {
+            let fetched = d.feed || [];
+            if (typeof knownIds !== 'undefined') {
+                fetched = fetched.filter(m => !knownIds.has(m.id));
+            }
+            
+            if (fetched.length === 0) {
+                allLoaded = true;
+                inner.insertAdjacentHTML('afterbegin', `<div style="text-align:center; padding:15px; color:#9ca3af; font-size:12px;">הגעת לתחילת הערוץ</div>`);
+            } else {
+                if (typeof knownIds !== 'undefined') {
+                    fetched.forEach(m => knownIds.add(m.id));
+                }
+                const minTs = Math.min(...fetched.map(m => m.ts || Infinity));
+                if (minTs < oldestTs) oldestTs = minTs;
+                fetched.reverse();
+                if (typeof items !== 'undefined') items = [...fetched, ...items];
+                
+                const wrap = document.getElementById('feedWrap');
+                const oldScrollHeight = wrap ? wrap.scrollHeight : 0;
+                
+                const olderHtml = fetched.map(typeof buildMsg === 'function' ? buildMsg : function(){return ''}).join('');
+                inner.insertAdjacentHTML('afterbegin', olderHtml);
+                
+                if (wrap) wrap.scrollTop = wrap.scrollHeight - oldScrollHeight;
+            }
+        }
+    } catch (e) { 
+        console.error("שגיאת היסטוריה:", e); 
+        const loaderEl = document.getElementById(loaderId);
+        if(loaderEl) loaderEl.remove();
+    }
+    setTimeout(() => { window.isLoadingOlder = false; }, 500);
+};
+
+// טיימר שבודק אם גללת למעלה
+setInterval(() => {
+    const wrap = document.getElementById('feedWrap');
+    if (!wrap || window.isLoadingOlder || typeof allLoaded === 'undefined' || allLoaded || typeof oldestTs === 'undefined' || !oldestTs) return;
+    if (wrap.scrollTop <= 150) { 
+        window.loadOlderMessages(); 
+    }
+}, 500);
