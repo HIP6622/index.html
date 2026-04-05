@@ -1860,3 +1860,18 @@ window.closeSiteStats = function() {
     const modal = document.getElementById('siteStatsModal');
     if(modal) modal.style.display = 'none';
 }
+// ====== שומר ראש לסטטיסטיקות ======
+// מוודא שכפתור הסטטיסטיקות יוצג אך ורק למי שיש לו הרשאות כתיבה (למי שרואה את סרגל המנהלים)
+setInterval(() => {
+    const composeBar = document.getElementById('adminComposeBar');
+    const statsBtn = document.getElementById('statsMenuBtn');
+    
+    if (composeBar && statsBtn) {
+        // בודק האם סרגל הניהול פעיל ומוצג כרגע במסך
+        if (window.getComputedStyle(composeBar).display !== 'none') {
+            statsBtn.style.display = 'flex'; // מציג למנהלים
+        } else {
+            statsBtn.style.display = 'none'; // מסתיר למשתמשים רגילים
+        }
+    }
+}, 1000); // בודק פעם בשנייה כדי להיות מסונכרן עם מערכת ההתחברות שלך
