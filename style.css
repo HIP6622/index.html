@@ -945,3 +945,66 @@ body.dark #searchResults { background: #0f0f15; }
     overflow: auto !important;
     background: #fff !important;
 }
+/* ====== רקע אינטראקטיבי דינמי ====== */
+.bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -10; /* שומר את הרקע מתחת לכל האתר */
+    overflow: hidden;
+    background: #0077b6; /* צבע הבסיס */
+    pointer-events: none; /* מונע מהרקע לחסום לחיצות עכבר באתר */
+}
+
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 1;
+    animation: float 20s infinite ease-in-out alternate;
+    will-change: transform;
+}
+
+.blob-1 {
+    top: -10%; left: -10%;
+    width: 60vw; height: 60vw;
+    background: #00b4d8;
+    animation-delay: 0s;
+}
+
+.blob-2 {
+    bottom: -20%; right: -10%;
+    width: 70vw; height: 70vw;
+    background: #90e0ef;
+    animation-delay: -5s;
+}
+
+.blob-3 {
+    top: 40%; left: 30%;
+    width: 50vw; height: 50vw;
+    background: #caf0f8;
+    animation-delay: -10s;
+}
+
+.mouse-blob {
+    position: absolute;
+    top: 0; left: 0;
+    width: 45vw; height: 45vw;
+    background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 35%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+    filter: blur(30px);
+    transform: translate(-50%, -50%);
+    will-change: transform;
+    mix-blend-mode: overlay;
+}
+
+@keyframes float {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+    33% { transform: translate(10%, -15%) scale(1.1) rotate(5deg); }
+    66% { transform: translate(-10%, 15%) scale(0.9) rotate(-5deg); }
+    100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+}
