@@ -957,3 +957,7 @@ body.dark #searchResults { background: #0f0f15; }
 .creators-hdr:hover .ch-arrow {
   transform: translateX(-3px) !important;
 }
+/* ביטול המתיחה של הערוצים כדי שהכפתור ייצמד אליהם */
+#channelsList {
+  flex: none !important;
+}
