@@ -1693,3 +1693,40 @@ async function uploadToImgBB(input) {
         input.value = ''; // מאפס את שדה הבחירה כדי שתוכל להעלות שוב
     }
 }
+// ====== העלאת תמונות אוטומטית ל-ImgBB ======
+async function uploadToImgBB(file) {
+  if (!file) return;
+  
+  const progressEl = document.getElementById('imgUploadProgress');
+  const urlInput = document.getElementById('composeImgUrl');
+  
+  // מציג למשתמש אנימציית טעינה ונועל את התיבה
+  if (progressEl) progressEl.style.display = 'block';
+  if (urlInput) urlInput.disabled = true;
+  
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  try {
+    const res = await fetch('https://api.imgbb.com/1/upload?key=3608f987ec12ff8b4b6100fbd0c86b0e', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      if (urlInput) urlInput.value = data.data.url;
+      if (typeof updateComposeImg === 'function') updateComposeImg(); 
+    } else {
+      alert('שגיאה בהעלאת התמונה: ' + (data.error?.message || 'נסה שוב'));
+    }
+  } catch (err) {
+    console.error("ImgBB upload error:", err);
+    alert('שגיאת תקשורת בזמן העלאת התמונה. ודא שהאינטרנט מחובר.');
+  } finally {
+    if (progressEl) progressEl.style.display = 'none';
+    if (urlInput) urlInput.disabled = false;
+    const fileInput = document.getElementById('imgUploadInput');
+    if (fileInput) fileInput.value = ''; 
+  }
+}
