@@ -2023,7 +2023,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-const bgContainer = document.getElementById('bgContainer'); // תפיסת הרקע
+    const bgContainer = document.getElementById('bgContainer'); // תפיסת הרקע
 
     // לולאת האנימציה 
     function animate() {
@@ -2061,4 +2061,8 @@ const bgContainer = document.getElementById('bgContainer'); // תפיסת הרק
         
         particles = particles.filter(p => p.life > 0);
         requestAnimationFrame(animate);
-    }
+    } // <--- פה היה חסר לך הסוגר של הפונקציה animate!
+
+    animate(); // <--- ופה חסרה הפקודה שמפעילה את הכל!
+
+}); // <--- זה הסוגר הראשי של כל המסמך
