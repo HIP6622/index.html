@@ -2023,24 +2023,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
- // לולאת האנימציה (רצה 60 פעמים בשנייה)
+const bgContainer = document.getElementById('bgContainer'); // תפיסת הרקע
+
+    // לולאת האנימציה 
     function animate() {
-        // 1. תנועת הילת הרקע (הבועה)
+        // 1. תנועת הילת הרקע (הבועה) שמחליקה לעבר העכבר
         currentX += (mouseX - currentX) * 0.05;
         currentY += (mouseY - currentY) * 0.05;
         mouseBlob.style.transform = `translate(${currentX}px, ${currentY}px) translate(-50%, -50%)`;
 
-        // 2. ציור הנצנצים
-        ctx.clearRect(0, 0, width, height); // מנקה את הפריים הקודם
+        // ======== הוספנו פה את אפקט ה-3D (פרלקס) ========
+        // מחשב כמה להזיז את הרקע לפי מיקום העכבר במסך
+        let moveX = (mouseX / window.innerWidth - 0.5) * 30; // 30 פיקסלים תנועה
+        let moveY = (mouseY / window.innerHeight - 0.5) * 30;
+        if(bgContainer) {
+            // מזיז את כל המכולה של הרקע לכיוון ההפוך
+            bgContainer.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
+        }
+        // =================================================
+
+        // 2. ציור הנצנצים (כמו שהיה)
+        ctx.clearRect(0, 0, width, height); 
         
         for (let i = 0; i < particles.length; i++) {
             let p = particles[i];
             p.x += p.speedX;
             p.y += p.speedY;
-            p.life -= 0.015; // מהירות ההתפוגגות
+            p.life -= 0.015; 
 
             if (p.life > 0) {
-                // *** הנה השינוי: צבע שמנת-זהבהב עתיק במקום לבן! ***
                 ctx.fillStyle = `rgba(255, 240, 200, ${p.life * 0.5})`; 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -2048,11 +2059,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         
-        // מוחק נצנצים שמתו כדי לא להעמיס על המחשב
         particles = particles.filter(p => p.life > 0);
-
         requestAnimationFrame(animate);
     }
-    
-    animate(); // התנעת המנוע
-});
