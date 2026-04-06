@@ -721,8 +721,10 @@ async function loadFeed(){
       }
 
       if(lastTs > 0) setLastReadServer(lastTs);
+      
+      triggerStats();
+      
       if(items.length) await pollAll();
-        triggerStats();
     }
   }catch(e){} 
   setLoading(false);
