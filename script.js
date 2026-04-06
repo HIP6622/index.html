@@ -36,6 +36,33 @@ async function setLastReadServer(ts) {
     } catch(e) {}
 }
 // --------------------------------------------------
+// --- הפעלת הסטטיסטיקות של האתר ---
+async function triggerStats() {
+    // מנסה להפעיל פונקציות קיימות אם הן עדיין בקובץ
+    if(typeof updateSiteStats === 'function') { updateSiteStats(); }
+    else if(typeof loadStats === 'function') { loadStats(); }
+    else if(typeof getStats === 'function') { getStats(); }
+    else {
+        // אם הן נמחקו, מושך את הנתונים ישירות מהשרת ומעדכן את העיצוב
+        try {
+            const r = await fetch(BACKEND + '/site_stats');
+            const d = await r.json();
+            if(d.status === 'ok') {
+                const map = {
+                    statOnline: d.online, statHour: d.hour, 
+                    statDay: d.day, statWeek: d.week, 
+                    onlineCountTop: d.online, peakCountTop: d.peak,
+                    onlineCountText: d.online, peakCountText: d.peak
+                };
+                for(let id in map) {
+                    let el = document.getElementById(id);
+                    if(el) el.innerText = map[id];
+                }
+            }
+        } catch(e) {}
+    }
+}
+setInterval(triggerStats, 10000); // מעדכן אוטומטית כל 10 שניות
 let pollPending = false, oldestTs = 0, allLoaded = false, loadingMore = false;
 
 let composeProfile = 'news', composeImgUrl = '', composeVidUrl = '', composeBtns = [], composeHtmlCode = '';
