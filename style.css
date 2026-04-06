@@ -936,52 +936,56 @@ body, html {
     background-color: transparent !important;
 }
 
-/* ====== רקע קלף עתיק - משופר וחזק ====== */
-.bg-container {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: -1 !important; /* העלינו את זה קדימה כדי שלא יוסתר */
-    overflow: hidden;
-    /* מעבר צבעים בולט: מרכז כהה (אדמה), קצוות בהירים (קרם עתיק) */
-    background: radial-gradient(circle at center, #cda776 0%, #e8ceab 50%, #fdf5e6 100%) !important;
-    pointer-events: none;
+/* ====== איפוס כדי ששום דבר לא יסתיר את העומק ====== */
+body, html {
+    background: transparent !important;
+    background-color: transparent !important;
 }
 
-/* שכבת השריטות (חיזקתי את האטימות כדי שיראו אותן בבירור) */
+/* ====== רקע קלף עמוק (מוגדל קצת בשביל תנועת ה-3D) ====== */
+.bg-container {
+    position: fixed;
+    top: -5%; left: -5%; /* מוגדל ב-10% כדי לאפשר תנועה */
+    width: 110vw; height: 110vh;
+    z-index: -1 !important;
+    overflow: hidden;
+    /* הגרדיאנט שלך: קצוות בהירים, מרכז כהה יותר - עכשיו עם יותר קונטרסט לעומק */
+    background: radial-gradient(circle at center, #c29c6d 0%, #dcb88b 50%, #fdf5e6 100%) !important;
+    pointer-events: none;
+    transition: transform 0.2s ease-out; /* החלקה של תנועת הפרלקס */
+}
+
+/* שכבת השריטות שקועה בתוך הקלף */
 .parchment-scratches {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    /* קווים חומים כהים עדינים שמדמים קמטים ושריטות בקלף */
     background-image: 
         linear-gradient(60deg, rgba(60, 40, 20, 0.08) 1px, transparent 1px, transparent 40px),
-        linear-gradient(-60deg, rgba(60, 40, 20, 0.05) 1px, transparent 1px, transparent 50px),
-        linear-gradient(15deg, rgba(60, 40, 20, 0.06) 1px, transparent 1px, transparent 80px) !important;
-    background-size: 150px 150px, 120px 120px, 200px 200px;
+        linear-gradient(-60deg, rgba(60, 40, 20, 0.05) 1px, transparent 1px, transparent 50px);
+    background-size: 150px 150px, 120px 120px;
+    mix-blend-mode: multiply; /* מטמיע את השריטות לתוך הצבע ככה שזה נראה אמיתי ולא מודבק */
     pointer-events: none;
     z-index: 1;
 }
 
-/* הילת העכבר הנוזלית (לא סימטרית ובולטת יותר) */
+/* הילת העכבר הנוזלית */
 .mouse-blob {
     position: absolute; top: 0; left: 0; 
-    width: 40vw; height: 40vw;
-    /* תאורה זהובה-חמימה חזקה יותר */
-    background: radial-gradient(circle, rgba(255, 215, 100, 0.35) 0%, transparent 60%) !important;
-    pointer-events: none; z-index: 2; filter: blur(25px);
+    width: 45vw; height: 45vw;
+    /* תאורת זהב עתיק שמאירה מתוך החושך */
+    background: radial-gradient(circle, rgba(255, 225, 120, 0.4) 0%, transparent 60%) !important;
+    pointer-events: none; z-index: 2; filter: blur(30px);
     transform: translate(-50%, -50%);
-    mix-blend-mode: color-burn; /* משתלב באגרסיביות עם הקלף ליצירת אפקט צריבה */
-    /* האנימציה שמשנה את הצורה - עכשיו זזה מהר יותר כדי שתשים לב */
-    animation: morphLiquid 4s ease-in-out infinite alternate !important;
+    mix-blend-mode: overlay; /* מאיר את השריטות תחתיו */
+    animation: morphLiquid 6s ease-in-out infinite alternate !important;
 }
 
-/* האנימציה שמעוותת את הבועה וגורמת לה "להישפך" */
 @keyframes morphLiquid {
     0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
     50% { border-radius: 60% 40% 30% 70% / 50% 60% 40% 50%; }
     100% { border-radius: 30% 70% 50% 50% / 60% 40% 70% 40%; }
 }
 
-/* הקנבס של הנצנצים */
 #sparklesCanvas {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 3;
