@@ -15,6 +15,27 @@ let me = null, items = [], lastTs = 0, newCount = 0, atBottom = true;
 let activePicker = null, activeCmtMsgId = null;
 let rxnCache = {}, cmtCount = {};
 const knownIds = new Set();
+// --- מערכת חכמה לניהול קריאה (מול שרת פייתון) ---
+async function getLastReadServer() {
+    if(!me) return 0;
+    try {
+        const res = await fetch(BACKEND + `/get_last_read?email=${encodeURIComponent(me.email)}&channel=${encodeURIComponent(currentChannelId)}&t=${Date.now()}`);
+        const data = await res.json();
+        return data.ts || 0;
+    } catch(e) { return 0; }
+}
+
+async function setLastReadServer(ts) {
+    if(!me || !ts) return;
+    try {
+        await fetch(BACKEND + '/set_last_read', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: me.email, channel: currentChannelId, ts: ts})
+        });
+    } catch(e) {}
+}
+// --------------------------------------------------
 let pollPending = false, oldestTs = 0, allLoaded = false, loadingMore = false;
 
 let composeProfile = 'news', composeImgUrl = '', composeVidUrl = '', composeBtns = [], composeHtmlCode = '';
@@ -639,16 +660,44 @@ async function delCmt(msgId,cid){
 async function loadFeed(){
   setLoading(true);
   try{
-    const r=await fetch(BACKEND+`/feed?channel=${currentChannelId}&limit=20&t=${Date.now()}`); const d=await r.json();
+    const r=await fetch(BACKEND+`/feed?channel=${currentChannelId}&limit=20&t=${Date.now()}`); 
+    const d=await r.json();
+    
     if(d.status==='ok'){
-      items=[...d.feed].reverse(); items.forEach(e=>knownIds.add(e.id)); allLoaded=d.feed.length<20; oldestTs=items.length?Math.min(...items.map(e=>e.ts||Infinity)):0; lastTs=items.length?Math.max(...items.map(e=>e.ts||0)):0;
+      items=[...d.feed].reverse(); 
+      items.forEach(e=>knownIds.add(e.id)); 
+      allLoaded=d.feed.length<20; 
+      oldestTs=items.length?Math.min(...items.map(e=>e.ts||Infinity)):0; 
+      lastTs=items.length?Math.max(...items.map(e=>e.ts||0)):0;
+      
       const inner=document.getElementById('feedInner');
-      inner.innerHTML=items.length?items.map(buildMsg).join(''):'';
-      document.getElementById('empty').style.display=items.length?'none':'block';
-      document.getElementById('feedWrap').scrollTop=999999;
-      if(items.length)await pollAll();
+      const lastReadTs = await getLastReadServer();
+      let unreadInjected = false;
+      let html = '';
+
+      items.forEach(e => {
+        if(!unreadInjected && lastReadTs > 0 && e.ts > lastReadTs) {
+            html += `<div class="unread-sep" id="unreadMarker"><span>לא נקרא</span></div>`;
+            unreadInjected = true;
+        }
+        html += buildMsg(e);
+      });
+
+      inner.innerHTML = items.length ? html : '';
+      document.getElementById('empty').style.display = items.length ? 'none' : 'block';
+      
+      const marker = document.getElementById('unreadMarker');
+      if (marker) {
+          setTimeout(() => marker.scrollIntoView({behavior: 'smooth', block: 'center'}), 100);
+      } else {
+          document.getElementById('feedWrap').scrollTop=999999;
+      }
+
+      if(lastTs > 0) setLastReadServer(lastTs);
+      if(items.length) await pollAll();
     }
-  }catch(e){} setLoading(false);
+  }catch(e){} 
+  setLoading(false);
 }
 
 async function loadMore(){
@@ -695,17 +744,11 @@ async function pollAll(){
   }catch(e){}finally{pollPending=false;}
 }
 
-function scrollToBottom(){document.getElementById('feedWrap').scrollTo({top:999999,behavior:'smooth'});newCount=0;updateScrollBtn();}
-function updateScrollBtn(){const btn=document.getElementById('scrollDownBtn'); if(!atBottom){btn.classList.add('show');if(newCount>0)btn.classList.add('has-new');else btn.classList.remove('has-new');}else{btn.classList.remove('show','has-new');newCount=0;}}
-document.getElementById('feedWrap').addEventListener('scroll',function(){atBottom=(this.scrollHeight-this.scrollTop-this.clientHeight)<80;updateScrollBtn();},{passive:true});
-function setLoading(v){document.getElementById('prog').classList.toggle('on',v);}
-
-function onUpdateModeHdrClick(e){
-  e.stopPropagation();
-  if(isSuperAdmin()){
-    const pop=document.getElementById('updateModePopover'); if(!pop)return;
-    closeAllCtbDropdowns(); pop.classList.toggle('open');
-  } else { toggleUpdateMode(); }
+function scrollToBottom(){
+    document.getElementById('feedWrap').scrollTo({top:999999,behavior:'smooth'});
+    newCount=0;
+    updateScrollBtn();
+    setLastReadServer(lastTs);
 }
 function closeUpdateModePopover(){ document.getElementById('updateModePopover')?.classList.remove('open'); }
 
