@@ -961,41 +961,58 @@ body, html {
     transition: transform 0.2s ease-out; /* החלקה של תנועת הפרלקס */
 }
 
-/* ====== שכבת השריטות (פה נכנסת התמונה שלך!) ====== */
+/* ====== איפוס כדי שהרקע ייראה ====== */
+body, html {
+    background: transparent !important;
+}
+
+/* ====== מיכל הרקע הדינמי (זז עם העכבר) ====== */
+.bg-container {
+    position: fixed;
+    top: -10%; left: -10%; 
+    width: 120vw; height: 120vh; /* גדול מהמסך כדי שלא יראו שוליים בתנועה */
+    z-index: -1 !important;
+    overflow: hidden;
+    /* הגרדיאנט ששומר על צד ימין בהיר בשביל התפריט */
+    background: linear-gradient(to left, #fdf5e6 0%, #fdf5e6 15%, #e8ceab 60%, #cda776 100%) !important;
+    pointer-events: none;
+    will-change: transform;
+}
+
+/* שכבת התמונה שלך - נצמדת לצבעים ומוסיפה שריטות */
 .parchment-scratches {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    
-    /* פה אתה שם את הקישור לתמונת הטקסטורה של הקלף/שריטות שתעלה לגיטהאב */
-    background-image: url('YOUR_IMAGE_LINK_HERE.jpg'); 
-    
+    background-image: url('https://images.nightcafe.studio/jobs/iswGnXUTqML996BNq2Wf/iswGnXUTqML996BNq2Wf-Ge7kO-adjusted.jpg?tr=w-1600,c-at_max');
     background-size: cover;
     background-position: center;
-    opacity: 0.6; /* אפשר לשחק עם המספר הזה (בין 0.1 ל-1) כדי להחליש או לחזק את השריטות */
-    mix-blend-mode: multiply; /* זה הקסם שצורב את התמונה לתוך צבעי הקלף שלנו */
-    pointer-events: none;
+    opacity: 0.5; /* אטימות שמאפשרת לגרדיאנט הבהיר מימין לעבור דרך התמונה */
+    mix-blend-mode: multiply; /* זה מה שהופך את התמונה לטקסטורה חיה */
     z-index: 1;
 }
 
-/* ====== הילת העכבר הנוזלית ====== */
+/* הילה נוזלית (Liquid Morphing) */
 .mouse-blob {
-    position: absolute; top: 0; left: 0; 
+    position: absolute;
+    top: 0; left: 0;
     width: 45vw; height: 45vw;
-    /* תאורת זהב עתיק שמאירה מתוך החושך */
-    background: radial-gradient(circle, rgba(255, 225, 120, 0.4) 0%, transparent 60%) !important;
-    pointer-events: none; z-index: 2; filter: blur(30px);
+    background: radial-gradient(circle, rgba(255, 215, 100, 0.3) 0%, transparent 70%) !important;
+    pointer-events: none;
+    z-index: 2;
+    filter: blur(40px);
     transform: translate(-50%, -50%);
-    mix-blend-mode: overlay; /* מאיר את השריטות תחתיו */
-    animation: morphLiquid 6s ease-in-out infinite alternate !important;
+    mix-blend-mode: overlay;
+    /* האנימציה שגורמת לזה "לנזול" ולשנות צורה */
+    animation: morphLiquid 7s ease-in-out infinite alternate !important;
 }
 
 @keyframes morphLiquid {
     0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
-    50% { border-radius: 60% 40% 30% 70% / 50% 60% 40% 50%; }
+    33% { border-radius: 50% 50% 30% 70% / 50% 30% 70% 50%; }
+    66% { border-radius: 60% 40% 70% 30% / 30% 60% 40% 70%; }
     100% { border-radius: 30% 70% 50% 50% / 60% 40% 70% 40%; }
 }
 
-/* ====== הקנבס של הנצנצים ====== */
 #sparklesCanvas {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 3;
