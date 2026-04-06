@@ -1970,9 +1970,9 @@ setInterval(window.loadChatMessages, 3000);
 
 
 
-// ====== מנוע רקע מתקדם: הילת עכבר ונצנצים (אבק כוכבים) ======
 document.addEventListener("DOMContentLoaded", () => {
     const mouseBlob = document.getElementById('mouseBlob');
+    const bgContainer = document.getElementById('bgContainer');
     const canvas = document.getElementById('sparklesCanvas');
     if (!mouseBlob || !canvas) return;
 
@@ -1980,89 +1980,55 @@ document.addEventListener("DOMContentLoaded", () => {
     let width = canvas.width = window.innerWidth;
     let height = canvas.height = window.innerHeight;
 
-    // עדכון גודל קנבס בשינוי מסך
-    window.addEventListener('resize', () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    });
+    let mouseX = width / 2, mouseY = height / 2;
+    let currentX = mouseX, currentY = mouseY;
+    let particles = [];
 
-    let mouseX = width / 2;
-    let mouseY = height / 2;
-    let currentX = mouseX;
-    let currentY = mouseY;
-    let particles = []; // מערך הנצנצים
-
-    // מעקב עכבר
     window.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
         addParticle(mouseX, mouseY);
     });
 
-    // מעקב מגע (בטלפונים)
-    window.addEventListener('touchmove', (e) => {
-        if (e.touches.length > 0) {
-            mouseX = e.touches[0].clientX;
-            mouseY = e.touches[0].clientY;
-            addParticle(mouseX, mouseY);
-        }
-    });
-
-    // הפונקציה שזורקת נצנצים עדינים
     function addParticle(x, y) {
-        // סיכוי של 70% לא להוציא נצנץ, כדי שזה יישאר סופר עדין ולא עמוס
-        if (Math.random() > 0.3) return; 
-        
+        if (Math.random() > 0.2) return; // עדינות
         particles.push({
-            x: x + (Math.random() * 20 - 10), // פיזור קל מסביב לעכבר
-            y: y + (Math.random() * 20 - 10),
-            size: Math.random() * 1.5 + 0.5, // גודל מיקרוסקופי
-            speedX: (Math.random() - 0.5) * 0.4, // תנועה איטית מאוד
-            speedY: (Math.random() - 0.5) * 0.4,
-            life: 1 // אורך חיים
+            x: x + (Math.random() * 30 - 15),
+            y: y + (Math.random() * 30 - 15),
+            size: Math.random() * 2 + 0.5,
+            speedX: (Math.random() - 0.5) * 0.5,
+            speedY: (Math.random() - 0.5) * 0.5,
+            life: 1
         });
     }
 
-    const bgContainer = document.getElementById('bgContainer'); // תפיסת הרקע
-
-    // לולאת האנימציה 
     function animate() {
-        // 1. תנועת הילת הרקע (הבועה) שמחליקה לעבר העכבר
-        currentX += (mouseX - currentX) * 0.05;
-        currentY += (mouseY - currentY) * 0.05;
+        // 1. תנועת הילה חלקה
+        currentX += (mouseX - currentX) * 0.08;
+        currentY += (mouseY - currentY) * 0.08;
         mouseBlob.style.transform = `translate(${currentX}px, ${currentY}px) translate(-50%, -50%)`;
 
-        // ======== הוספנו פה את אפקט ה-3D (פרלקס) ========
-        // מחשב כמה להזיז את הרקע לפי מיקום העכבר במסך
-        let moveX = (mouseX / window.innerWidth - 0.5) * 30; // 30 פיקסלים תנועה
-        let moveY = (mouseY / window.innerHeight - 0.5) * 30;
+        // 2. תנועת הרקע (Parallax) - הרקע זז הפוך מהעכבר
+        let moveX = (mouseX / width - 0.5) * 40; 
+        let moveY = (mouseY / height - 0.5) * 40;
         if(bgContainer) {
-            // מזיז את כל המכולה של הרקע לכיוון ההפוך
             bgContainer.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
         }
-        // =================================================
 
-        // 2. ציור הנצנצים (כמו שהיה)
-        ctx.clearRect(0, 0, width, height); 
-        
+        // 3. ציור הנצנצים
+        ctx.clearRect(0, 0, width, height);
         for (let i = 0; i < particles.length; i++) {
             let p = particles[i];
-            p.x += p.speedX;
-            p.y += p.speedY;
-            p.life -= 0.015; 
-
+            p.x += p.speedX; p.y += p.speedY; p.life -= 0.01;
             if (p.life > 0) {
-                ctx.fillStyle = `rgba(255, 240, 200, ${p.life * 0.5})`; 
+                ctx.fillStyle = `rgba(255, 230, 150, ${p.life * 0.6})`;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
-        
         particles = particles.filter(p => p.life > 0);
         requestAnimationFrame(animate);
-    } // <--- פה היה חסר לך הסוגר של הפונקציה animate!
-
-    animate(); // <--- ופה חסרה הפקודה שמפעילה את הכל!
-
-}); // <--- זה הסוגר הראשי של כל המסמך
+    }
+    animate();
+});
